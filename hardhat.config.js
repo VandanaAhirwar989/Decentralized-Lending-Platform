@@ -1,23 +1,35 @@
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.17",
+  solidity: {
+    version: "0.8.19",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   networks: {
-    coreTestnet: {
+    hardhat: {
+      chainId: 1337
+    },
+    core_testnet_2: {
       url: "https://rpc.test2.btcs.network",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1114,
-    },
+      chainId: 1115,
+      gasPrice: 20000000000, // 20 gwei
+      gas: 8000000
+    }
   },
-  paths: {
-    artifacts: "./artifacts",
-    cache: "./cache",
-    sources: "./contracts",
-    tests: "./test",
+  gasReporter: {
+    enabled: process.env.REPORT_GAS !== undefined,
+    currency: "USD"
   },
+  etherscan: {
+    // Add API key if you want to verify contracts
+    apiKey: process.env.ETHERSCAN_API_KEY
+  }
 };
