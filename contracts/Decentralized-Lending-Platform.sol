@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+      // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -131,6 +131,110 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
         uint256 loanCount;
     }
 
+    // NEW STRUCTURES FOR ADDITIONAL FEATURES
+
+    struct SubscriptionPlan {
+        uint256 id;
+        string name;
+        uint256 monthlyFee;
+        uint256 discountRate; // Percentage discount on interest rates
+        uint256 maxUsers;
+        uint256 currentUsers;
+        bool isActive;
+        uint256 minStakingPeriod;
+        mapping(address => uint256) subscribers;
+        mapping(address => uint256) subscriptionExpiry;
+    }
+
+    struct StakingTier {
+        uint256 minAmount;
+        uint256 maxAmount;
+        uint256 aprRate;
+        uint256 lockupPeriod;
+        uint256 earlyWithdrawalPenalty;
+        bool isActive;
+    }
+
+    struct CreditLine {
+        uint256 creditLimit;
+        uint256 usedCredit;
+        uint256 interestRate;
+        uint256 lastPaymentTime;
+        uint256 minimumPayment;
+        bool isActive;
+        uint256 creditScore;
+        uint256 paymentHistory; // Score out of 100
+    }
+
+    struct Option {
+        uint256 id;
+        address owner;
+        uint256 strikePrice;
+        uint256 expiryTime;
+        uint256 premium;
+        bool isCall; // true for call, false for put
+        bool isExercised;
+        uint256 underlyingAmount;
+        address underlyingToken;
+    }
+
+    struct Auction {
+        uint256 id;
+        address seller;
+        uint256 amount;
+        uint256 startingPrice;
+        uint256 currentBid;
+        address highestBidder;
+        uint256 endTime;
+        bool isActive;
+        bool isCompleted;
+        address tokenAddress;
+    }
+
+    struct CrossChainBridge {
+        mapping(uint256 => bool) supportedChains;
+        mapping(address => mapping(uint256 => uint256)) userBalances;
+        mapping(bytes32 => bool) processedTransactions;
+        uint256 bridgeFee;
+        bool isActive;
+    }
+
+    struct AIRiskModel {
+        mapping(address => uint256) riskScores;
+        mapping(address => uint256) lastRiskUpdate;
+        uint256 riskThreshold;
+        bool isActive;
+        mapping(address => bool) highRiskUsers;
+    }
+
+    struct DynamicPricing {
+        mapping(address => uint256) demandFactors;
+        mapping(address => uint256) lastPriceUpdate;
+        uint256 priceVolatility;
+        bool isDynamicPricingEnabled;
+    }
+
+    struct Gamification {
+        mapping(address => uint256) userLevel;
+        mapping(address => uint256) experience;
+        mapping(address => uint256) achievements;
+        mapping(address => uint256) streaks;
+        mapping(uint256 => uint256) levelRequirements;
+        mapping(address => uint256) lastActivityTime;
+    }
+
+    struct Escrow {
+        uint256 id;
+        address buyer;
+        address seller;
+        uint256 amount;
+        bool isCompleted;
+        bool isDisputed;
+        address arbitrator;
+        uint256 createdTime;
+        uint256 releaseTime;
+    }
+
     // Token addresses (replace with real ones before deployment)
     address constant LENDING_TOKEN_ADDRESS = 0x0000000000000000000000000000000000000001;
     address constant COLLATERAL_TOKEN_ADDRESS = 0x0000000000000000000000000000000000000002;
@@ -172,6 +276,14 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
     uint256 public autoLiquidationEnabled = 1;
     uint256 public stakingRewardsMultiplier = 100; // 100 = 1x
     
+    // NEW STATE VARIABLES
+    uint256 public subscriptionPlanCounter;
+    uint256 public optionCounter;
+    uint256 public auctionCounter;
+    uint256 public escrowCounter;
+    uint256 public totalCreditLines;
+    uint256 public maxCreditMultiplier = 300; // 3x leverage
+    
     bool public flashLoansEnabled = true;
     bool public borrowingEnabled = true;
     bool public depositsEnabled = true;
@@ -180,6 +292,11 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
     bool public insuranceEnabled = true;
     bool public crossChainEnabled = false;
     bool public leverageEnabled = false; // New: leverage trading feature
+    bool public subscriptionEnabled = true;
+    bool public optionsEnabled = true;
+    bool public auctionEnabled = true;
+    bool public aiRiskEnabled = true;
+    bool public gamificationEnabled = true;
 
     // Mappings
     mapping(address => LenderInfo) public lenders;
@@ -210,11 +327,27 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
     mapping(address => uint256) public depositLimits; // Individual deposit limits
     mapping(address => bool) public automationEnabled; // Automation preferences
 
+    // NEW MAPPINGS FOR ADDITIONAL FEATURES
+    mapping(uint256 => SubscriptionPlan) public subscriptionPlans;
+    mapping(address => CreditLine) public creditLines;
+    mapping(uint256 => StakingTier) public stakingTiers;
+    mapping(uint256 => Option) public options;
+    mapping(uint256 => Auction) public auctions;
+    mapping(uint256 => Escrow) public escrows;
+    mapping(address => uint256) public perpetualSwapPositions;
+    mapping(address => mapping(address => uint256)) public tokenSwapRates;
+    mapping(address => uint256) public autoRepayThresholds;
+    mapping(address => bool) public autoRepayEnabled;
+
     Insurance public insurance;
     LiquidationInfo public liquidationInfo;
     FlashLoanInfo public flashLoanInfo;
     NFTBoost public nftBoost;
     TreasuryInfo public treasury;
+    CrossChainBridge public crossChainBridge;
+    AIRiskModel public aiRiskModel;
+    DynamicPricing public dynamicPricing;
+    Gamification public gamification;
     uint256 public yieldPoolCounter;
 
     // Arrays for iteration
@@ -222,8 +355,27 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
     address[] public borrowersList;
     address[] public supportedCollaterals;
     address[] public vipMembersList;
+    address[] public creditLineUsers;
 
-    // New Events
+    // New Events for Additional Features
+    event SubscriptionPlanCreated(uint256 indexed planId, string name, uint256 monthlyFee);
+    event UserSubscribed(address indexed user, uint256 indexed planId, uint256 expiry);
+    event CreditLineApproved(address indexed user, uint256 creditLimit);
+    event CreditUsed(address indexed user, uint256 amount, uint256 remaining);
+    event OptionCreated(uint256 indexed optionId, address indexed owner, uint256 strikePrice);
+    event OptionExercised(uint256 indexed optionId, address indexed exerciser, uint256 profit);
+    event AuctionCreated(uint256 indexed auctionId, address indexed seller, uint256 startingPrice);
+    event BidPlaced(uint256 indexed auctionId, address indexed bidder, uint256 amount);
+    event AuctionCompleted(uint256 indexed auctionId, address indexed winner, uint256 finalPrice);
+    event EscrowCreated(uint256 indexed escrowId, address indexed buyer, address indexed seller, uint256 amount);
+    event EscrowReleased(uint256 indexed escrowId, address indexed recipient);
+    event LevelUp(address indexed user, uint256 newLevel);
+    event AchievementUnlocked(address indexed user, uint256 achievementId);
+    event PerpetualPositionOpened(address indexed user, uint256 amount, bool isLong);
+    event AutoRepayExecuted(address indexed user, uint256 amount);
+    event TokensSwapped(address indexed user, address tokenA, address tokenB, uint256 amountIn, uint256 amountOut);
+
+    // Original Events
     event Deposit(address indexed user, uint256 amount);
     event Withdraw(address indexed user, uint256 amount, uint256 interest);
     event Borrow(address indexed user, uint256 borrowAmount, uint256 collateralAmount);
@@ -287,6 +439,14 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
 
     modifier updateActivity() {
         lastActivity[msg.sender] = block.timestamp;
+        _updateGamification(msg.sender);
+        _;
+    }
+
+    modifier onlySubscriber(uint256 _planId) {
+        SubscriptionPlan storage plan = subscriptionPlans[_planId];
+        require(plan.subscribers[msg.sender] > 0, "Not subscribed");
+        require(plan.subscriptionExpiry[msg.sender] > block.timestamp, "Subscription expired");
         _;
     }
 
@@ -314,397 +474,234 @@ contract Project is ReentrancyGuard, Ownable, Pausable {
         treasury.distributionInterval = 7 days;
         treasury.lastDistributionTime = block.timestamp;
         
+        // Initialize AI Risk Model
+        aiRiskModel.riskThreshold = 75;
+        aiRiskModel.isActive = true;
+        
+        // Initialize gamification levels
+        _initializeGamification();
+        
+        // Create default subscription plans
+        _createDefaultSubscriptionPlans();
+        
+        // Create default staking tiers
+        _createDefaultStakingTiers();
+        
         // Create default loan packages
         _createDefaultLoanPackages();
     }
 
-    // NEW FEATURE 1: Loan Packages System
-    function createLoanPackage(
+    // NEW FEATURE 11: Subscription Plans
+    function createSubscriptionPlan(
         string memory _name,
-        uint256 _minAmount,
-        uint256 _maxAmount,
-        uint256 _interestRate,
-        uint256 _maxDuration,
-        uint256 _collateralRatio
+        uint256 _monthlyFee,
+        uint256 _discountRate,
+        uint256 _maxUsers,
+        uint256 _minStakingPeriod
     ) external onlyOwner {
-        loanPackageCounter = loanPackageCounter.add(1);
+        subscriptionPlanCounter = subscriptionPlanCounter.add(1);
         
-        LoanPackage storage package = loanPackages[loanPackageCounter];
-        package.id = loanPackageCounter;
-        package.name = _name;
-        package.minAmount = _minAmount;
-        package.maxAmount = _maxAmount;
-        package.interestRate = _interestRate;
-        package.maxDuration = _maxDuration;
-        package.collateralRatio = _collateralRatio;
-        package.isActive = true;
+        SubscriptionPlan storage plan = subscriptionPlans[subscriptionPlanCounter];
+        plan.id = subscriptionPlanCounter;
+        plan.name = _name;
+        plan.monthlyFee = _monthlyFee;
+        plan.discountRate = _discountRate;
+        plan.maxUsers = _maxUsers;
+        plan.currentUsers = 0;
+        plan.isActive = true;
+        plan.minStakingPeriod = _minStakingPeriod;
         
-        emit LoanPackageCreated(loanPackageCounter, _name);
+        emit SubscriptionPlanCreated(subscriptionPlanCounter, _name, _monthlyFee);
     }
 
-    function borrowWithPackage(uint256 _packageId, uint256 _amount, uint256 _duration) external 
-        nonReentrant whenNotPaused whenBorrowingEnabled notBlacklisted updateActivity {
-        LoanPackage storage package = loanPackages[_packageId];
-        require(package.isActive, "Package not active");
-        require(_amount >= package.minAmount && _amount <= package.maxAmount, "Amount out of range");
-        require(_duration <= package.maxDuration, "Duration too long");
+    function subscribeToSPlan(uint256 _planId) external nonReentrant updateActivity {
+        require(subscriptionEnabled, "Subscriptions disabled");
+        SubscriptionPlan storage plan = subscriptionPlans[_planId];
+        require(plan.isActive, "Plan not active");
+        require(plan.currentUsers < plan.maxUsers, "Plan at max capacity");
+        require(plan.subscribers[msg.sender] == 0, "Already subscribed");
         
-        BorrowerInfo storage borrower = borrowers[msg.sender];
-        borrower.maxLoanDuration = _duration;
-        borrower.loanStartTime = block.timestamp;
+        require(lendingToken.transferFrom(msg.sender, address(this), plan.monthlyFee), "Payment failed");
         
-        package.totalLoaned = package.totalLoaned.add(_amount);
-        package.loanCount = package.loanCount.add(1);
+        plan.subscribers[msg.sender] = _planId;
+        plan.subscriptionExpiry[msg.sender] = block.timestamp.add(30 days);
+        plan.currentUsers = plan.currentUsers.add(1);
         
-        // Award loyalty points
-        _awardLoyaltyPoints(msg.sender, _amount.div(1000)); // 1 point per 1000 tokens
+        // Award loyalty points for subscription
+        _awardLoyaltyPoints(msg.sender, plan.monthlyFee.div(100));
         
-        // Continue with standard borrowing logic...
-        _executeBorrow(msg.sender, _amount, package.collateralRatio);
+        emit UserSubscribed(msg.sender, _planId, plan.subscriptionExpiry[msg.sender]);
     }
 
-    // NEW FEATURE 2: Leverage Trading
-    function openLeveragePosition(uint256 _amount, uint256 _leverage) external 
-        nonReentrant whenNotPaused notBlacklisted updateActivity {
-        require(leverageEnabled, "Leverage trading disabled");
-        require(_leverage >= 2 && _leverage <= 10, "Invalid leverage");
-        require(leveragePositions[msg.sender] == 0, "Position already open");
+    // NEW FEATURE 12: Credit Lines
+    function approveCreditLine(address _user, uint256 _creditLimit, uint256 _interestRate) external onlyOwner {
+        require(_creditLimit > 0, "Invalid credit limit");
         
-        uint256 totalPosition = _amount.mul(_leverage);
-        require(availableLiquidity >= totalPosition.sub(_amount), "Insufficient liquidity");
+        CreditLine storage creditLine = creditLines[_user];
+        creditLine.creditLimit = _creditLimit;
+        creditLine.usedCredit = 0;
+        creditLine.interestRate = _interestRate;
+        creditLine.lastPaymentTime = block.timestamp;
+        creditLine.minimumPayment = _creditLimit.div(12); // 1/12th monthly minimum
+        creditLine.isActive = true;
+        creditLine.creditScore = _calculateInitialCreditScore(_user);
+        creditLine.paymentHistory = 100; // Start with perfect score
         
-        // Transfer collateral
-        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
-        
-        // Update state
-        leveragePositions[msg.sender] = totalPosition;
-        availableLiquidity = availableLiquidity.sub(totalPosition.sub(_amount));
-        
-        emit LeveragePositionOpened(msg.sender, _amount, _leverage);
-    }
-
-    function closeLeveragePosition() external nonReentrant updateActivity {
-        uint256 position = leveragePositions[msg.sender];
-        require(position > 0, "No open position");
-        
-        // Calculate P&L and close position
-        leveragePositions[msg.sender] = 0;
-        
-        // Return funds (simplified - in reality would need price oracle)
-        require(lendingToken.transfer(msg.sender, position.div(2)), "Transfer failed");
-    }
-
-    // NEW FEATURE 3: Peer-to-Peer Lending
-    function createP2PLoan(address _borrower, uint256 _amount, uint256 _interestRate, uint256 _duration) external 
-        nonReentrant updateActivity {
-        require(_borrower != msg.sender, "Cannot lend to yourself");
-        require(!blacklistedUsers[_borrower], "Borrower is blacklisted");
-        
-        // Transfer tokens to contract
-        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
-        
-        p2pLending[msg.sender][_borrower] = _amount;
-        
-        emit P2PLoanCreated(msg.sender, _borrower, _amount);
-    }
-
-    // NEW FEATURE 4: Automated Compound Interest
-    function enableAutoCompound() external updateActivity {
-        lenders[msg.sender].autoCompoundEnabled = true;
-    }
-
-    function disableAutoCompound() external updateActivity {
-        lenders[msg.sender].autoCompoundEnabled = false;
-    }
-
-    function executeAutoCompound(address _user) external {
-        LenderInfo storage lender = lenders[_user];
-        require(lender.autoCompoundEnabled, "Auto compound not enabled");
-        require(block.timestamp >= lender.lastUpdateTime.add(COMPOUND_FREQUENCY), "Too early to compound");
-        
-        _updateLenderInterest(_user);
-        
-        uint256 interest = lender.accruedInterest;
-        if (interest > 0) {
-            lender.accruedInterest = 0;
-            lender.depositedAmount = lender.depositedAmount.add(interest);
-            lender.compoundCount = lender.compoundCount.add(1);
-            
-            emit AutoCompoundExecuted(_user, interest);
-        }
-    }
-
-    // NEW FEATURE 5: Loyalty Program
-    function _awardLoyaltyPoints(address _user, uint256 _points) internal {
-        loyaltyPoints[_user] = loyaltyPoints[_user].add(_points);
-        
-        // Check for VIP status
-        if (loyaltyPoints[_user] >= 10000 && !vipMembers[_user]) {
-            vipMembers[_user] = true;
-            vipMembersList.push(_user);
-            emit VIPStatusGranted(_user);
+        if (creditLine.creditLimit == _creditLimit) {
+            creditLineUsers.push(_user);
+            totalCreditLines = totalCreditLines.add(1);
         }
         
-        emit LoyaltyPointsAwarded(_user, _points);
+        emit CreditLineApproved(_user, _creditLimit);
     }
 
-    function redeemLoyaltyPoints(uint256 _points) external updateActivity {
-        require(loyaltyPoints[msg.sender] >= _points, "Insufficient points");
+    function drawFromCreditLine(uint256 _amount) external nonReentrant updateActivity {
+        CreditLine storage creditLine = creditLines[msg.sender];
+        require(creditLine.isActive, "Credit line not active");
+        require(creditLine.usedCredit.add(_amount) <= creditLine.creditLimit, "Exceeds credit limit");
+        require(availableLiquidity >= _amount, "Insufficient liquidity");
         
-        loyaltyPoints[msg.sender] = loyaltyPoints[msg.sender].sub(_points);
-        
-        // Convert points to tokens (1000 points = 1 token)
-        uint256 tokenReward = _points.div(1000);
-        if (tokenReward > 0) {
-            require(lendingToken.transfer(msg.sender, tokenReward), "Transfer failed");
-        }
-    }
-
-    // NEW FEATURE 6: Social Credit System
-    function updateSocialScore(address _user, uint256 _newScore) external onlyOwner {
-        socialScore[_user] = _newScore;
-        emit SocialScoreUpdated(_user, _newScore);
-    }
-
-    function getSocialScore(address _user) external view returns (uint256) {
-        return socialScore[_user];
-    }
-
-    // NEW FEATURE 7: Risk Assessment
-    function calculateUserRiskScore(address _user) public view returns (uint256) {
-        BorrowerInfo storage borrower = borrowers[_user];
-        uint256 riskScore = 100; // Base score
-        
-        // Factor in loan history
-        if (borrower.totalRepaid > 0) {
-            riskScore = riskScore.sub(borrower.creditScore.div(10));
-        }
-        
-        // Factor in social score
-        if (socialScore[_user] > 0) {
-            riskScore = riskScore.sub(socialScore[_user].div(20));
-        }
-        
-        // Factor in activity
-        uint256 daysSinceActivity = (block.timestamp - lastActivity[_user]) / 1 days;
-        if (daysSinceActivity > 30) {
-            riskScore = riskScore.add(daysSinceActivity.div(10));
-        }
-        
-        return riskScore > 1000 ? 1000 : riskScore;
-    }
-
-    // NEW FEATURE 8: NFT Boost System
-    function activateNFTBoost(uint256 _multiplier, uint256 _duration) external onlyOwner {
-        require(_multiplier >= 100 && _multiplier <= 300, "Invalid multiplier");
-        
-        nftBoost.hasNFTBoost[msg.sender] = true;
-        nftBoost.boostMultiplier[msg.sender] = _multiplier;
-        nftBoost.boostExpiry[msg.sender] = block.timestamp.add(_duration);
-        
-        emit NFTBoostActivated(msg.sender, _multiplier, nftBoost.boostExpiry[msg.sender]);
-    }
-
-    // NEW FEATURE 9: Treasury Management
-    function distributeTreasuryRewards() external {
-        require(block.timestamp >= treasury.lastDistributionTime.add(treasury.distributionInterval), "Too early");
-        require(treasury.totalTreasuryShares > 0, "No treasury shares");
-        
-        uint256 distributionAmount = treasury.totalTreasuryFees.div(10); // Distribute 10% of treasury
-        treasury.totalTreasuryFees = treasury.totalTreasuryFees.sub(distributionAmount);
-        treasury.lastDistributionTime = block.timestamp;
-        
-        // Distribute to VIP members (simplified)
-        uint256 perMemberReward = distributionAmount.div(vipMembersList.length);
-        for (uint256 i = 0; i < vipMembersList.length; i++) {
-            lendingToken.transfer(vipMembersList[i], perMemberReward);
-        }
-        
-        emit TreasuryDistribution(distributionAmount, vipMembersList.length);
-    }
-
-    // NEW FEATURE 10: Advanced Liquidation Protection
-    function enableLiquidationProtection() external payable onlyVIP {
-        require(msg.value >= 0.1 ether, "Insufficient payment");
-        liquidationInfo.isProtectedFromLiquidation[msg.sender] = true;
-        liquidationInfo.liquidationCooldown[msg.sender] = block.timestamp.add(30 days);
-    }
-
-    // Enhanced deposit function with referrals and tier system
-    function deposit(uint256 _amount, address _referrer) external nonReentrant whenNotPaused 
-        whenDepositsEnabled notBlacklisted updateActivity {
-        require(_amount > 0, "Amount must be greater than 0");
-        
-        // Check deposit limits
-        if (depositLimits[msg.sender] > 0) {
-            require(_amount <= depositLimits[msg.sender], "Exceeds deposit limit");
-        }
-        
-        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
-
-        LenderInfo storage lender = lenders[msg.sender];
-        
-        // Handle referrals
-        if (_referrer != address(0) && _referrer != msg.sender && referrers[msg.sender] == address(0)) {
-            referrers[msg.sender] = _referrer;
-            uint256 referralReward = _amount.mul(1).div(100); // 1% referral reward
-            referralRewards[_referrer] = referralRewards[_referrer].add(referralReward);
-            _awardLoyaltyPoints(_referrer, referralReward.div(100));
-            emit ReferralReward(_referrer, msg.sender, referralReward);
-        }
-        
-        // Add to lenders list if new lender
-        if (lender.depositedAmount == 0) {
-            lendersList.push(msg.sender);
-            lender.stakingTime = block.timestamp;
-        }
-
-        _updateLenderInterest(msg.sender);
-        _updateLenderRewards(msg.sender);
-        _updateTier(msg.sender);
-
-        lender.depositedAmount = lender.depositedAmount.add(_amount);
-        lender.lastUpdateTime = block.timestamp;
-
-        totalDeposits = totalDeposits.add(_amount);
-        availableLiquidity = availableLiquidity.add(_amount);
-
-        // Update voting power
-        votingPower[msg.sender] = votingPower[msg.sender].add(_amount);
-        
-        // Award loyalty points
-        _awardLoyaltyPoints(msg.sender, _amount.div(1000));
-
-        _updateInterestRates();
-
-        emit Deposit(msg.sender, _amount);
-    }
-
-    // Helper function for borrowing
-    function _executeBorrow(address _user, uint256 _amount, uint256 _collateralRatio) internal {
-        // Implementation details for borrowing logic
-        BorrowerInfo storage borrower = borrowers[_user];
-        borrower.borrowedAmount = borrower.borrowedAmount.add(_amount);
-        borrower.lastUpdateTime = block.timestamp;
-        
-        totalBorrows = totalBorrows.add(_amount);
+        creditLine.usedCredit = creditLine.usedCredit.add(_amount);
         availableLiquidity = availableLiquidity.sub(_amount);
         
-        _updateInterestRates();
+        require(lendingToken.transfer(msg.sender, _amount), "Transfer failed");
         
-        require(lendingToken.transfer(_user, _amount), "Transfer failed");
+        emit CreditUsed(msg.sender, _amount, creditLine.creditLimit.sub(creditLine.usedCredit));
     }
 
-    // Create default loan packages
-    function _createDefaultLoanPackages() internal {
-        // Standard Package
-        loanPackageCounter = loanPackageCounter.add(1);
-        LoanPackage storage standard = loanPackages[loanPackageCounter];
-        standard.id = loanPackageCounter;
-        standard.name = "Standard";
-        standard.minAmount = 1000 * 10**18;
-        standard.maxAmount = 50000 * 10**18;
-        standard.interestRate = 8;
-        standard.maxDuration = 180 days;
-        standard.collateralRatio = 150;
-        standard.isActive = true;
+    // NEW FEATURE 13: Options Trading
+    function createOption(
+        uint256 _strikePrice,
+        uint256 _expiryTime,
+        uint256 _premium,
+        bool _isCall,
+        uint256 _underlyingAmount,
+        address _underlyingToken
+    ) external nonReentrant updateActivity {
+        require(optionsEnabled, "Options disabled");
+        require(_expiryTime > block.timestamp, "Invalid expiry");
+        require(whitelistedTokens[_underlyingToken], "Token not supported");
         
-        // Premium Package
-        loanPackageCounter = loanPackageCounter.add(1);
-        LoanPackage storage premium = loanPackages[loanPackageCounter];
-        premium.id = loanPackageCounter;
-        premium.name = "Premium";
-        premium.minAmount = 50000 * 10**18;
-        premium.maxAmount = 500000 * 10**18;
-        premium.interestRate = 6;
-        premium.maxDuration = 365 days;
-        premium.collateralRatio = 130;
-        premium.isActive = true;
+        optionCounter = optionCounter.add(1);
+        
+        Option storage option = options[optionCounter];
+        option.id = optionCounter;
+        option.owner = msg.sender;
+        option.strikePrice = _strikePrice;
+        option.expiryTime = _expiryTime;
+        option.premium = _premium;
+        option.isCall = _isCall;
+        option.isExercised = false;
+        option.underlyingAmount = _underlyingAmount;
+        option.underlyingToken = _underlyingToken;
+        
+        // Collect premium
+        require(lendingToken.transferFrom(msg.sender, address(this), _premium), "Premium payment failed");
+        
+        emit OptionCreated(optionCounter, msg.sender, _strikePrice);
     }
 
-    // Multi-collateral borrow function (keeping original)
-    function borrowWithMultiCollateral(
-        uint256 _borrowAmount, 
-        address[] memory _collateralTokens,
-        uint256[] memory _collateralAmounts
-    ) external nonReentrant whenNotPaused whenBorrowingEnabled notBlacklisted updateActivity {
-        require(_borrowAmount > 0, "Borrow amount must be greater than 0");
-        require(_collateralTokens.length == _collateralAmounts.length, "Array length mismatch");
-        require(availableLiquidity >= _borrowAmount, "Insufficient liquidity");
-
-        uint256 totalCollateralValue = 0;
+    function exerciseOption(uint256 _optionId) external nonReentrant updateActivity {
+        Option storage option = options[_optionId];
+        require(!option.isExercised, "Already exercised");
+        require(block.timestamp <= option.expiryTime, "Option expired");
+        require(msg.sender != option.owner, "Cannot exercise own option");
         
-        // Transfer and validate collaterals
-        for (uint256 i = 0; i < _collateralTokens.length; i++) {
-            require(whitelistedTokens[_collateralTokens[i]], "Token not whitelisted");
-            require(_collateralAmounts[i] > 0, "Collateral amount must be greater than 0");
-            
-            IERC20(_collateralTokens[i]).transferFrom(msg.sender, address(this), _collateralAmounts[i]);
-            
-            uint256 collateralFactor = collateralFactors[_collateralTokens[i]];
-            totalCollateralValue = totalCollateralValue.add(
-                _collateralAmounts[i].mul(100).div(collateralFactor)
-            );
-            
-            userCollaterals[msg.sender][_collateralTokens[i]] = 
-                userCollaterals[msg.sender][_collateralTokens[i]].add(_collateralAmounts[i]);
+        // Simplified exercise logic (would need oracle for real prices)
+        uint256 currentPrice = _getTokenPrice(option.underlyingToken);
+        uint256 profit = 0;
+        
+        if (option.isCall && currentPrice > option.strikePrice) {
+            profit = currentPrice.sub(option.strikePrice).mul(option.underlyingAmount).div(10**18);
+        } else if (!option.isCall && currentPrice < option.strikePrice) {
+            profit = option.strikePrice.sub(currentPrice).mul(option.underlyingAmount).div(10**18);
         }
-
-        require(totalCollateralValue >= _borrowAmount, "Insufficient collateral");
-
-        BorrowerInfo storage borrower = borrowers[msg.sender];
         
-        if (borrower.borrowedAmount == 0) {
-            borrowersList.push(msg.sender);
+        require(profit > 0, "Option not profitable");
+        
+        option.isExercised = true;
+        
+        // Transfer profit
+        require(lendingToken.transfer(msg.sender, profit), "Profit transfer failed");
+        
+        emit OptionExercised(_optionId, msg.sender, profit);
+    }
+
+    // NEW FEATURE 14: Token Auction System
+    function createAuction(
+        uint256 _amount,
+        uint256 _startingPrice,
+        uint256 _duration,
+        address _tokenAddress
+    ) external nonReentrant updateActivity {
+        require(auctionEnabled, "Auctions disabled");
+        require(whitelistedTokens[_tokenAddress] || _tokenAddress == address(lendingToken), "Token not supported");
+        
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+        
+        auctionCounter = auctionCounter.add(1);
+        
+        Auction storage auction = auctions[auctionCounter];
+        auction.id = auctionCounter;
+        auction.seller = msg.sender;
+        auction.amount = _amount;
+        auction.startingPrice = _startingPrice;
+        auction.currentBid = _startingPrice;
+        auction.highestBidder = address(0);
+        auction.endTime = block.timestamp.add(_duration);
+        auction.isActive = true;
+        auction.isCompleted = false;
+        auction.tokenAddress = _tokenAddress;
+        
+        emit AuctionCreated(auctionCounter, msg.sender, _startingPrice);
+    }
+
+    function placeBid(uint256 _auctionId, uint256 _bidAmount) external nonReentrant updateActivity {
+        Auction storage auction = auctions[_auctionId];
+        require(auction.isActive, "Auction not active");
+        require(block.timestamp < auction.endTime, "Auction ended");
+        require(_bidAmount > auction.currentBid, "Bid too low");
+        require(msg.sender != auction.seller, "Cannot bid on own auction");
+        
+        // Refund previous highest bidder
+        if (auction.highestBidder != address(0)) {
+            lendingToken.transfer(auction.highestBidder, auction.currentBid);
         }
-
-        _updateBorrowerInterest(msg.sender);
-        _updateCreditScore(msg.sender);
-
-        borrower.borrowedAmount = borrower.borrowedAmount.add(_borrowAmount);
-        borrower.lastUpdateTime = block.timestamp;
-
-        totalBorrows = totalBorrows.add(_borrowAmount);
-        availableLiquidity = availableLiquidity.sub(_borrowAmount);
-
-        // Award loyalty points
-        _awardLoyaltyPoints(msg.sender, _borrowAmount.div(2000)); // Less points for borrowing
-
-        _updateInterestRates();
-
-        require(lendingToken.transfer(msg.sender, _borrowAmount), "Borrow transfer failed");
-
-        emit Borrow(msg.sender, _borrowAmount, totalCollateralValue);
-       
-       
-
-   
-    
-    
-    
-
-   
-    
-           
         
-                
-
-       
-    
+        // Transfer new bid
+        require(lendingToken.transferFrom(msg.sender, address(this), _bidAmount), "Bid transfer failed");
         
-       
-   
+        auction.currentBid = _bidAmount;
+        auction.highestBidder = msg.sender;
+        
+        emit BidPlaced(_auctionId, msg.sender, _bidAmount);
+    }
 
-    
+    function finalizeAuction(uint256 _auctionId) external nonReentrant {
+        Auction storage auction = auctions[_auctionId];
+        require(auction.isActive, "Auction not active");
+        require(block.timestamp >= auction.endTime, "Auction not ended");
+        require(!auction.isCompleted, "Already completed");
+        
+        auction.isActive = false;
+        auction.isCompleted = true;
+        
+        if (auction.highestBidder != address(0)) {
+            // Transfer tokens to winner
+            IERC20(auction.tokenAddress).transfer(auction.highestBidder, auction.amount);
+            // Transfer payment to seller
+            lendingToken.transfer(auction.seller, auction.currentBid);
             
-    
-        
-        
-   
-       
-        
-          
-        
-       
-    
-        
+            emit AuctionCompleted(_auctionId, auction.highestBidder, auction.currentBid);
+        } else {
+            // No bids, return tokens to seller
+            IERC20(auction.tokenAddress).transfer(auction.seller, auction.amount);
+        }
+    }
+
+    // NEW FEATURE 15: Escrow Services
+    function createEscrow(
+        address _seller,
+        uint256 _amount,
+        uint256 _releaseTime,
+        address _arbitrator  
