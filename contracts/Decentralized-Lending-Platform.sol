@@ -1,4 +1,4 @@
-      // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -8,700 +8,695 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
- * @title Enhanced Decentralized Lending Platform
- * @dev A comprehensive lending platform with advanced features for DeFi
+ * @title Enhanced Decentralized Lending Platform with Advanced Features
+ * @dev A comprehensive lending platform with cutting-edge DeFi features
  */
-contract Project is ReentrancyGuard, Ownable, Pausable {
+contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
     using SafeMath for uint256;
 
-    // Structs
-    struct LenderInfo {
-        uint256 depositedAmount;
-        uint256 lastUpdateTime;
-        uint256 accruedInterest;
-        uint256 rewardTokens;
-        uint256 stakingTime;
-        uint8 tierLevel;
-        uint256 totalEarned;
-        uint256 compoundCount;
-        bool autoCompoundEnabled;
-    }
+    // NEW ADVANCED STRUCTURES
 
-    struct BorrowerInfo {
-        uint256 borrowedAmount;
-        uint256 collateralAmount;
-        uint256 lastUpdateTime;
-        uint256 accruedInterest;
-        uint256 liquidationThreshold;
-        uint256 creditScore;
-        bool isWhitelisted;
-        uint256 totalRepaid;
-        uint256 loanStartTime;
-        uint256 maxLoanDuration;
-    }
-
-    struct PoolInfo {
-        uint256 totalSupply;
-        uint256 totalBorrows;
-        uint256 reserveFactor;
-        uint256 utilizationRate;
-        uint256 currentLendingRate;
-        uint256 currentBorrowingRate;
-        uint256 lastUpdateTime;
-    }
-
-    struct GovernanceProposal {
+    struct DerivativesPool {
         uint256 id;
-        string description;
-        uint256 votesFor;
-        uint256 votesAgainst;
+        string name;
+        address underlyingAsset;
+        uint256 totalLiquidity;
+        uint256 totalShorts;
+        uint256 totalLongs;
+        uint256 fundingRate;
+        uint256 maxLeverage;
+        bool isActive;
+        mapping(address => uint256) userLongPositions;
+        mapping(address => uint256) userShortPositions;
+        mapping(address => uint256) userMargin;
+    }
+
+    struct PredictionMarket {
+        uint256 id;
+        string question;
+        string category;
         uint256 endTime;
+        uint256 totalYesShares;
+        uint256 totalNoShares;
+        uint256 resolutionTime;
+        bool isResolved;
+        bool outcome;
+        address oracle;
+        mapping(address => uint256) yesShares;
+        mapping(address => uint256) noShares;
+        uint256 totalVolume;
+        uint256 creatorFee;
+    }
+
+    struct YieldStrategy {
+        uint256 id;
+        string name;
+        address targetToken;
+        uint256 totalDeposited;
+        uint256 expectedAPY;
+        uint256 riskLevel; // 1-10 scale
+        bool autoRebalance;
+        bool isActive;
+        address strategyContract;
+        uint256 managementFee;
+        uint256 performanceFee;
+        mapping(address => uint256) userDeposits;
+        mapping(address => uint256) userRewards;
+    }
+
+    struct DAO {
+        uint256 totalProposals;
+        uint256 votingThreshold;
+        uint256 executionDelay;
+        uint256 treasuryBalance;
+        mapping(uint256 => Proposal) proposals;
+        mapping(address => uint256) delegatedVotes;
+        mapping(address => address) delegates;
+        bool isActive;
+    }
+
+    struct Proposal {
+        uint256 id;
+        string title;
+        string description;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 executionTime;
+        uint256 forVotes;
+        uint256 againstVotes;
+        uint256 abstainVotes;
         bool executed;
+        bool canceled;
+        bytes callData;
         address proposer;
         mapping(address => bool) hasVoted;
-        uint256 proposalType; // 1: Parameter change, 2: Feature toggle, 3: Treasury action
-        bytes proposalData;
+        mapping(address => uint8) vote; // 0: against, 1: for, 2: abstain
     }
 
-    struct YieldFarmingPool {
-        IERC20 stakingToken;
+    struct LiquidityMining {
+        uint256 poolId;
+        address lpToken;
+        uint256 rewardPerBlock;
+        uint256 startBlock;
+        uint256 endBlock;
+        uint256 totalAllocPoint;
+        uint256 bonusMultiplier;
+        bool isActive;
+        mapping(address => uint256) userShares;
+        mapping(address => uint256) rewardDebt;
+        mapping(address => uint256) pendingRewards;
+    }
+
+    struct SyntheticAsset {
+        uint256 id;
+        string name;
+        string symbol;
+        address collateralToken;
+        uint256 collateralRatio;
+        uint256 totalSupply;
+        uint256 totalCollateral;
+        uint256 liquidationRatio;
+        bool isActive;
+        mapping(address => uint256) userMinted;
+        mapping(address => uint256) userCollateral;
+        address priceOracle;
+    }
+
+    struct InsurancePool {
+        uint256 id;
+        string name;
+        uint256 totalCoverage;
+        uint256 availableCoverage;
+        uint256 premiumRate;
+        uint256 maxClaim;
+        uint256 claimPeriod;
+        bool isActive;
+        mapping(address => uint256) userCoverage;
+        mapping(address => uint256) userPremiums;
+        mapping(address => uint256) lastClaimTime;
+        mapping(uint256 => InsuranceClaim) claims;
+        uint256 totalClaims;
+    }
+
+    struct InsuranceClaim {
+        uint256 id;
+        address claimant;
+        uint256 amount;
+        uint256 timestamp;
+        string description;
+        bool isApproved;
+        bool isPaid;
+        address validator;
+    }
+
+    struct StakingPool {
+        uint256 id;
+        string name;
+        address stakingToken;
+        address rewardToken;
         uint256 totalStaked;
         uint256 rewardRate;
-        uint256 lastUpdateTime;
-        uint256 rewardPerTokenStored;
-        uint256 poolEndTime;
-        uint256 minStakingPeriod;
-        mapping(address => uint256) userStaked;
-        mapping(address => uint256) userRewardPerTokenPaid;
-        mapping(address => uint256) rewards;
-        mapping(address => uint256) stakingStartTime;
-    }
-
-    struct Insurance {
-        uint256 totalCoverage;
-        uint256 premiumRate;
-        mapping(address => uint256) userCoverage;
-        mapping(address => uint256) premiumsPaid;
-        mapping(address => bool) isCovered;
-        mapping(address => uint256) claimHistory;
-        uint256 maxClaimAmount;
-        uint256 claimCooldown;
-    }
-
-    struct LiquidationInfo {
-        uint256 liquidationBonus;
-        uint256 maxLiquidationPercent;
-        mapping(address => bool) isProtectedFromLiquidation;
-        mapping(address => uint256) liquidationCooldown;
-    }
-
-    struct FlashLoanInfo {
-        uint256 totalFlashLoaned;
-        uint256 flashLoanCount;
-        mapping(address => uint256) userFlashLoanCount;
-        mapping(address => uint256) userFlashLoanVolume;
-        mapping(address => bool) flashLoanWhitelist;
-    }
-
-    struct NFTBoost {
-        mapping(address => bool) hasNFTBoost;
-        mapping(address => uint256) boostMultiplier; // 100 = 1x, 150 = 1.5x
-        mapping(address => uint256) boostExpiry;
-        address nftContract; // NFT contract for boost verification
-    }
-
-    struct TreasuryInfo {
-        uint256 totalTreasuryFees;
-        uint256 lastDistributionTime;
-        uint256 distributionInterval;
-        mapping(address => uint256) userTreasuryShares;
-        uint256 totalTreasuryShares;
-    }
-
-    struct LoanPackage {
-        uint256 id;
-        string name;
-        uint256 minAmount;
-        uint256 maxAmount;
-        uint256 interestRate;
-        uint256 maxDuration;
-        uint256 collateralRatio;
-        bool isActive;
-        uint256 totalLoaned;
-        uint256 loanCount;
-    }
-
-    // NEW STRUCTURES FOR ADDITIONAL FEATURES
-
-    struct SubscriptionPlan {
-        uint256 id;
-        string name;
-        uint256 monthlyFee;
-        uint256 discountRate; // Percentage discount on interest rates
-        uint256 maxUsers;
-        uint256 currentUsers;
-        bool isActive;
-        uint256 minStakingPeriod;
-        mapping(address => uint256) subscribers;
-        mapping(address => uint256) subscriptionExpiry;
-    }
-
-    struct StakingTier {
-        uint256 minAmount;
-        uint256 maxAmount;
-        uint256 aprRate;
         uint256 lockupPeriod;
-        uint256 earlyWithdrawalPenalty;
+        uint256 earlyWithdrawalFee;
         bool isActive;
+        mapping(address => uint256) userStaked;
+        mapping(address => uint256) stakingTime;
+        mapping(address => uint256) earnedRewards;
+        mapping(address => uint256) lastUpdateTime;
     }
 
-    struct CreditLine {
-        uint256 creditLimit;
-        uint256 usedCredit;
-        uint256 interestRate;
-        uint256 lastPaymentTime;
-        uint256 minimumPayment;
-        bool isActive;
-        uint256 creditScore;
-        uint256 paymentHistory; // Score out of 100
-    }
-
-    struct Option {
+    struct AutomatedStrategy {
         uint256 id;
         address owner;
-        uint256 strikePrice;
-        uint256 expiryTime;
-        uint256 premium;
-        bool isCall; // true for call, false for put
-        bool isExercised;
-        uint256 underlyingAmount;
-        address underlyingToken;
-    }
-
-    struct Auction {
-        uint256 id;
-        address seller;
+        string strategyType; // "DCA", "REBALANCE", "YIELD_FARM", "ARBITRAGE"
+        uint256 frequency; // in seconds
         uint256 amount;
-        uint256 startingPrice;
-        uint256 currentBid;
-        address highestBidder;
-        uint256 endTime;
         bool isActive;
-        bool isCompleted;
-        address tokenAddress;
+        uint256 lastExecution;
+        uint256 totalExecutions;
+        address targetToken;
+        uint256 maxSlippage;
+        mapping(string => uint256) parameters;
     }
 
-    struct CrossChainBridge {
-        mapping(uint256 => bool) supportedChains;
-        mapping(address => mapping(uint256 => uint256)) userBalances;
-        mapping(bytes32 => bool) processedTransactions;
-        uint256 bridgeFee;
+    struct RebaseToken {
+        string name;
+        string symbol;
+        uint256 totalSupply;
+        uint256 rebaseRate;
+        uint256 lastRebaseTime;
+        uint256 rebaseFrequency;
         bool isActive;
+        mapping(address => uint256) balances;
+        mapping(address => uint256) scaledBalances;
+        uint256 totalScaledSupply;
     }
 
-    struct AIRiskModel {
-        mapping(address => uint256) riskScores;
-        mapping(address => uint256) lastRiskUpdate;
-        uint256 riskThreshold;
-        bool isActive;
-        mapping(address => bool) highRiskUsers;
+    struct AdvancedLending {
+        uint256 maxLeverage;
+        uint256 marginCallThreshold;
+        uint256 forcedLiquidationThreshold;
+        bool leverageEnabled;
+        bool marginTradingEnabled;
+        mapping(address => uint256) leveragePositions;
+        mapping(address => uint256) marginBalances;
+        mapping(address => uint256) borrowedAmounts;
+        mapping(address => uint256) interestRates;
     }
 
-    struct DynamicPricing {
-        mapping(address => uint256) demandFactors;
-        mapping(address => uint256) lastPriceUpdate;
-        uint256 priceVolatility;
-        bool isDynamicPricingEnabled;
-    }
+    // State Variables for New Features
+    uint256 public derivativesPoolCounter;
+    uint256 public predictionMarketCounter;
+    uint256 public yieldStrategyCounter;
+    uint256 public liquidityMiningCounter;
+    uint256 public syntheticAssetCounter;
+    uint256 public insurancePoolCounter;
+    uint256 public stakingPoolCounter;
+    uint256 public automatedStrategyCounter;
+    uint256 public rebaseTokenCounter;
 
-    struct Gamification {
-        mapping(address => uint256) userLevel;
-        mapping(address => uint256) experience;
-        mapping(address => uint256) achievements;
-        mapping(address => uint256) streaks;
-        mapping(uint256 => uint256) levelRequirements;
-        mapping(address => uint256) lastActivityTime;
-    }
+    bool public derivativesEnabled = true;
+    bool public predictionMarketsEnabled = true;
+    bool public yieldStrategiesEnabled = true;
+    bool public liquidityMiningEnabled = true;
+    bool public syntheticAssetsEnabled = true;
+    bool public advancedInsuranceEnabled = true;
+    bool public automatedStrategiesEnabled = true;
+    bool public rebaseTokensEnabled = true;
+    bool public daoEnabled = true;
 
-    struct Escrow {
-        uint256 id;
-        address buyer;
-        address seller;
-        uint256 amount;
-        bool isCompleted;
-        bool isDisputed;
-        address arbitrator;
-        uint256 createdTime;
-        uint256 releaseTime;
-    }
+    // Mappings for New Features
+    mapping(uint256 => DerivativesPool) public derivativesPools;
+    mapping(uint256 => PredictionMarket) public predictionMarkets;
+    mapping(uint256 => YieldStrategy) public yieldStrategies;
+    mapping(uint256 => LiquidityMining) public liquidityMiningPools;
+    mapping(uint256 => SyntheticAsset) public syntheticAssets;
+    mapping(uint256 => InsurancePool) public insurancePools;
+    mapping(uint256 => StakingPool) public stakingPools;
+    mapping(uint256 => AutomatedStrategy) public automatedStrategies;
+    mapping(uint256 => RebaseToken) public rebaseTokens;
+    mapping(address => uint256[]) public userStrategies;
+    mapping(address => uint256) public reputationScores;
+    mapping(address => bool) public strategists;
+    mapping(address => uint256) public totalFeesEarned;
 
-    // Token addresses (replace with real ones before deployment)
-    address constant LENDING_TOKEN_ADDRESS = 0x0000000000000000000000000000000000000001;
-    address constant COLLATERAL_TOKEN_ADDRESS = 0x0000000000000000000000000000000000000002;
-    address constant GOVERNANCE_TOKEN_ADDRESS = 0x0000000000000000000000000000000000000003;
+    DAO public dao;
+    AdvancedLending public advancedLending;
 
-    // Tokens
-    IERC20 public lendingToken;
-    IERC20 public collateralToken;
-    IERC20 public governanceToken;
+    // Events for New Features
+    event DerivativesPoolCreated(uint256 indexed poolId, string name, address underlyingAsset);
+    event PositionOpened(uint256 indexed poolId, address indexed user, bool isLong, uint256 amount, uint256 leverage);
+    event PositionClosed(uint256 indexed poolId, address indexed user, uint256 pnl);
+    event PredictionMarketCreated(uint256 indexed marketId, string question, uint256 endTime);
+    event SharesPurchased(uint256 indexed marketId, address indexed user, bool isYes, uint256 shares);
+    event MarketResolved(uint256 indexed marketId, bool outcome);
+    event YieldStrategyCreated(uint256 indexed strategyId, string name, uint256 expectedAPY);
+    event StrategyDeposit(uint256 indexed strategyId, address indexed user, uint256 amount);
+    event StrategyWithdraw(uint256 indexed strategyId, address indexed user, uint256 amount, uint256 rewards);
+    event SyntheticAssetMinted(uint256 indexed assetId, address indexed user, uint256 amount, uint256 collateral);
+    event SyntheticAssetBurned(uint256 indexed assetId, address indexed user, uint256 amount);
+    event InsuranceClaimFiled(uint256 indexed poolId, uint256 indexed claimId, address claimant, uint256 amount);
+    event InsuranceClaimPaid(uint256 indexed poolId, uint256 indexed claimId, uint256 amount);
+    event AutomatedStrategyCreated(uint256 indexed strategyId, address indexed owner, string strategyType);
+    event StrategyExecuted(uint256 indexed strategyId, uint256 timestamp, uint256 amount);
+    event RebaseExecuted(uint256 indexed tokenId, uint256 newSupply, uint256 rate);
+    event MarginPositionOpened(address indexed user, uint256 amount, uint256 leverage);
+    event MarginCall(address indexed user, uint256 threshold, uint256 currentRatio);
+    event ForcedLiquidation(address indexed user, uint256 amount, uint256 penalty);
 
-    // Enhanced Constants
-    uint256 public constant BASE_LENDING_RATE = 2;
-    uint256 public constant BASE_BORROWING_RATE = 5;
-    uint256 public constant RATE_MULTIPLIER = 20;
-    uint256 public constant OPTIMAL_UTILIZATION = 80;
-    uint256 public constant COLLATERAL_RATIO = 150;
-    uint256 public constant LIQUIDATION_THRESHOLD = 120;
-    uint256 public constant LIQUIDATION_PENALTY = 10;
-    uint256 public constant RESERVE_FACTOR = 10;
-    uint256 public constant SECONDS_PER_YEAR = 365 days;
-    uint256 public constant MAX_BORROW_LIMIT = 1000000 * 10**18;
-    uint256 public constant TIER_THRESHOLD = 30 days;
-    uint256 public constant MIN_VOTING_POWER = 1000 * 10**18;
-    uint256 public constant MAX_LOAN_DURATION = 365 days;
-    uint256 public constant COMPOUND_FREQUENCY = 1 days;
-
-    // State variables
-    uint256 public totalDeposits;
-    uint256 public totalBorrows;
-    uint256 public availableLiquidity;
-    uint256 public totalReserves;
-    uint256 public flashLoanFee = 9;
-    uint256 public rewardTokensPerSecond = 1 * 10**15;
-    uint256 public proposalCounter;
-    uint256 public votingDuration = 7 days;
-    uint256 public insuranceFund;
-    uint256 public loanPackageCounter;
-    uint256 public dynamicInterestEnabled = 1; // 1 = enabled, 0 = disabled
-    uint256 public autoLiquidationEnabled = 1;
-    uint256 public stakingRewardsMultiplier = 100; // 100 = 1x
-    
-    // NEW STATE VARIABLES
-    uint256 public subscriptionPlanCounter;
-    uint256 public optionCounter;
-    uint256 public auctionCounter;
-    uint256 public escrowCounter;
-    uint256 public totalCreditLines;
-    uint256 public maxCreditMultiplier = 300; // 3x leverage
-    
-    bool public flashLoansEnabled = true;
-    bool public borrowingEnabled = true;
-    bool public depositsEnabled = true;
-    bool public yieldFarmingEnabled = true;
-    bool public governanceEnabled = true;
-    bool public insuranceEnabled = true;
-    bool public crossChainEnabled = false;
-    bool public leverageEnabled = false; // New: leverage trading feature
-    bool public subscriptionEnabled = true;
-    bool public optionsEnabled = true;
-    bool public auctionEnabled = true;
-    bool public aiRiskEnabled = true;
-    bool public gamificationEnabled = true;
-
-    // Mappings
-    mapping(address => LenderInfo) public lenders;
-    mapping(address => BorrowerInfo) public borrowers;
-    mapping(address => bool) public authorizedLiquidators;
-    mapping(address => uint256) public userBorrowLimits;
-    mapping(uint256 => GovernanceProposal) public proposals;
-    mapping(address => uint256) public votingPower;
-    mapping(address => uint256) public referralRewards;
-    mapping(address => address) public referrers;
-    mapping(uint256 => YieldFarmingPool) public yieldPools;
-    mapping(address => bool) public whitelistedTokens;
-    mapping(uint256 => LoanPackage) public loanPackages;
-    
-    // Multi-collateral support
-    mapping(address => uint256) public collateralFactors;
-    mapping(address => mapping(address => uint256)) public userCollaterals;
-
-    // New advanced mappings
-    mapping(address => uint256) public lastActivity; // For activity tracking
-    mapping(address => uint256) public loyaltyPoints; // Loyalty program
-    mapping(address => bool) public vipMembers; // VIP membership
-    mapping(address => uint256) public socialScore; // Social credit score
-    mapping(address => mapping(address => uint256)) public p2pLending; // Peer-to-peer lending
-    mapping(address => uint256) public leveragePositions; // Leverage trading positions
-    mapping(address => bool) public blacklistedUsers; // Blacklist functionality
-    mapping(address => uint256) public userRiskScore; // Risk assessment
-    mapping(address => uint256) public depositLimits; // Individual deposit limits
-    mapping(address => bool) public automationEnabled; // Automation preferences
-
-    // NEW MAPPINGS FOR ADDITIONAL FEATURES
-    mapping(uint256 => SubscriptionPlan) public subscriptionPlans;
-    mapping(address => CreditLine) public creditLines;
-    mapping(uint256 => StakingTier) public stakingTiers;
-    mapping(uint256 => Option) public options;
-    mapping(uint256 => Auction) public auctions;
-    mapping(uint256 => Escrow) public escrows;
-    mapping(address => uint256) public perpetualSwapPositions;
-    mapping(address => mapping(address => uint256)) public tokenSwapRates;
-    mapping(address => uint256) public autoRepayThresholds;
-    mapping(address => bool) public autoRepayEnabled;
-
-    Insurance public insurance;
-    LiquidationInfo public liquidationInfo;
-    FlashLoanInfo public flashLoanInfo;
-    NFTBoost public nftBoost;
-    TreasuryInfo public treasury;
-    CrossChainBridge public crossChainBridge;
-    AIRiskModel public aiRiskModel;
-    DynamicPricing public dynamicPricing;
-    Gamification public gamification;
-    uint256 public yieldPoolCounter;
-
-    // Arrays for iteration
-    address[] public lendersList;
-    address[] public borrowersList;
-    address[] public supportedCollaterals;
-    address[] public vipMembersList;
-    address[] public creditLineUsers;
-
-    // New Events for Additional Features
-    event SubscriptionPlanCreated(uint256 indexed planId, string name, uint256 monthlyFee);
-    event UserSubscribed(address indexed user, uint256 indexed planId, uint256 expiry);
-    event CreditLineApproved(address indexed user, uint256 creditLimit);
-    event CreditUsed(address indexed user, uint256 amount, uint256 remaining);
-    event OptionCreated(uint256 indexed optionId, address indexed owner, uint256 strikePrice);
-    event OptionExercised(uint256 indexed optionId, address indexed exerciser, uint256 profit);
-    event AuctionCreated(uint256 indexed auctionId, address indexed seller, uint256 startingPrice);
-    event BidPlaced(uint256 indexed auctionId, address indexed bidder, uint256 amount);
-    event AuctionCompleted(uint256 indexed auctionId, address indexed winner, uint256 finalPrice);
-    event EscrowCreated(uint256 indexed escrowId, address indexed buyer, address indexed seller, uint256 amount);
-    event EscrowReleased(uint256 indexed escrowId, address indexed recipient);
-    event LevelUp(address indexed user, uint256 newLevel);
-    event AchievementUnlocked(address indexed user, uint256 achievementId);
-    event PerpetualPositionOpened(address indexed user, uint256 amount, bool isLong);
-    event AutoRepayExecuted(address indexed user, uint256 amount);
-    event TokensSwapped(address indexed user, address tokenA, address tokenB, uint256 amountIn, uint256 amountOut);
-
-    // Original Events
-    event Deposit(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount, uint256 interest);
-    event Borrow(address indexed user, uint256 borrowAmount, uint256 collateralAmount);
-    event Repay(address indexed user, uint256 amount, uint256 interest);
-    event Liquidation(address indexed borrower, address indexed liquidator, uint256 collateralSeized, uint256 debtCovered);
-    event FlashLoan(address indexed borrower, uint256 amount, uint256 fee);
-    event InterestRatesUpdated(uint256 lendingRate, uint256 borrowingRate);
-    event ReservesWithdrawn(uint256 amount);
-    event EmergencyWithdraw(address indexed user, uint256 amount);
-    event RewardsClaimed(address indexed user, uint256 amount);
-    event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description);
-    event Voted(uint256 indexed proposalId, address indexed voter, bool support, uint256 votes);
-    event ProposalExecuted(uint256 indexed proposalId);
-    event YieldFarmingPoolCreated(uint256 indexed poolId, address indexed stakingToken);
-    event Staked(uint256 indexed poolId, address indexed user, uint256 amount);
-    event Unstaked(uint256 indexed poolId, address indexed user, uint256 amount);
-    event InsuranceClaimed(address indexed user, uint256 amount);
-    event ReferralReward(address indexed referrer, address indexed referee, uint256 reward);
-    event TierUpgraded(address indexed user, uint8 newTier);
-    event CollateralAdded(address indexed token, uint256 factor);
-    event LoyaltyPointsAwarded(address indexed user, uint256 points);
-    event VIPStatusGranted(address indexed user);
-    event LoanPackageCreated(uint256 indexed packageId, string name);
-    event LeveragePositionOpened(address indexed user, uint256 amount, uint256 leverage);
-    event AutoCompoundExecuted(address indexed user, uint256 amount);
-    event SocialScoreUpdated(address indexed user, uint256 newScore);
-    event P2PLoanCreated(address indexed lender, address indexed borrower, uint256 amount);
-    event TreasuryDistribution(uint256 totalAmount, uint256 recipientCount);
-    event NFTBoostActivated(address indexed user, uint256 multiplier, uint256 expiry);
-
-    // Modifiers
-    modifier whenDepositsEnabled() {
-        require(depositsEnabled, "Deposits are disabled");
+    // Modifiers for New Features
+    modifier onlyStrategist() {
+        require(strategists[msg.sender] || owner() == msg.sender, "Not authorized strategist");
         _;
     }
 
-    modifier whenBorrowingEnabled() {
-        require(borrowingEnabled, "Borrowing is disabled");
+    modifier validDerivativesPool(uint256 _poolId) {
+        require(_poolId > 0 && _poolId <= derivativesPoolCounter, "Invalid pool ID");
+        require(derivativesPools[_poolId].isActive, "Pool not active");
         _;
     }
 
-    modifier onlyAuthorizedLiquidator() {
-        require(authorizedLiquidators[msg.sender] || owner() == msg.sender, "Not authorized liquidator");
-        _;
-    }
-
-    modifier onlyGovernance() {
-        require(governanceEnabled && votingPower[msg.sender] >= MIN_VOTING_POWER, "Insufficient governance power");
-        _;
-    }
-
-    modifier notBlacklisted() {
-        require(!blacklistedUsers[msg.sender], "User is blacklisted");
-        _;
-    }
-
-    modifier onlyVIP() {
-        require(vipMembers[msg.sender], "VIP access required");
-        _;
-    }
-
-    modifier updateActivity() {
-        lastActivity[msg.sender] = block.timestamp;
-        _updateGamification(msg.sender);
-        _;
-    }
-
-    modifier onlySubscriber(uint256 _planId) {
-        SubscriptionPlan storage plan = subscriptionPlans[_planId];
-        require(plan.subscribers[msg.sender] > 0, "Not subscribed");
-        require(plan.subscriptionExpiry[msg.sender] > block.timestamp, "Subscription expired");
+    modifier validPredictionMarket(uint256 _marketId) {
+        require(_marketId > 0 && _marketId <= predictionMarketCounter, "Invalid market ID");
+        require(block.timestamp < predictionMarkets[_marketId].endTime, "Market ended");
         _;
     }
 
     constructor() Ownable(msg.sender) {
-        lendingToken = IERC20(LENDING_TOKEN_ADDRESS);
-        collateralToken = IERC20(COLLATERAL_TOKEN_ADDRESS);
-        governanceToken = IERC20(GOVERNANCE_TOKEN_ADDRESS);
-        authorizedLiquidators[msg.sender] = true;
+        // Initialize DAO
+        dao.votingThreshold = 100000 * 10**18; // 100k tokens
+        dao.executionDelay = 2 days;
+        dao.isActive = true;
         
-        // Initialize default collateral
-        collateralFactors[COLLATERAL_TOKEN_ADDRESS] = 150;
-        supportedCollaterals.push(COLLATERAL_TOKEN_ADDRESS);
-        whitelistedTokens[COLLATERAL_TOKEN_ADDRESS] = true;
+        // Initialize Advanced Lending
+        advancedLending.maxLeverage = 10; // 10x max leverage
+        advancedLending.marginCallThreshold = 110; // 110% collateral ratio
+        advancedLending.forcedLiquidationThreshold = 105; // 105% collateral ratio
+        advancedLending.leverageEnabled = true;
+        advancedLending.marginTradingEnabled = true;
         
-        // Initialize insurance
-        insurance.premiumRate = 100; // 1% annual premium
-        insurance.maxClaimAmount = 100000 * 10**18;
-        insurance.claimCooldown = 30 days;
-        
-        // Initialize liquidation info
-        liquidationInfo.liquidationBonus = 5; // 5% bonus for liquidators
-        liquidationInfo.maxLiquidationPercent = 50; // Max 50% liquidation per transaction
-        
-        // Initialize treasury
-        treasury.distributionInterval = 7 days;
-        treasury.lastDistributionTime = block.timestamp;
-        
-        // Initialize AI Risk Model
-        aiRiskModel.riskThreshold = 75;
-        aiRiskModel.isActive = true;
-        
-        // Initialize gamification levels
-        _initializeGamification();
-        
-        // Create default subscription plans
-        _createDefaultSubscriptionPlans();
-        
-        // Create default staking tiers
-        _createDefaultStakingTiers();
-        
-        // Create default loan packages
-        _createDefaultLoanPackages();
+        // Set initial strategists
+        strategists[msg.sender] = true;
     }
 
-    // NEW FEATURE 11: Subscription Plans
-    function createSubscriptionPlan(
+    // NEW FEATURE: Derivatives Trading
+    function createDerivativesPool(
         string memory _name,
-        uint256 _monthlyFee,
-        uint256 _discountRate,
-        uint256 _maxUsers,
-        uint256 _minStakingPeriod
+        address _underlyingAsset,
+        uint256 _maxLeverage,
+        uint256 _fundingRate
     ) external onlyOwner {
-        subscriptionPlanCounter = subscriptionPlanCounter.add(1);
+        require(derivativesEnabled, "Derivatives disabled");
         
-        SubscriptionPlan storage plan = subscriptionPlans[subscriptionPlanCounter];
-        plan.id = subscriptionPlanCounter;
-        plan.name = _name;
-        plan.monthlyFee = _monthlyFee;
-        plan.discountRate = _discountRate;
-        plan.maxUsers = _maxUsers;
-        plan.currentUsers = 0;
-        plan.isActive = true;
-        plan.minStakingPeriod = _minStakingPeriod;
+        derivativesPoolCounter = derivativesPoolCounter.add(1);
         
-        emit SubscriptionPlanCreated(subscriptionPlanCounter, _name, _monthlyFee);
+        DerivativesPool storage pool = derivativesPools[derivativesPoolCounter];
+        pool.id = derivativesPoolCounter;
+        pool.name = _name;
+        pool.underlyingAsset = _underlyingAsset;
+        pool.maxLeverage = _maxLeverage;
+        pool.fundingRate = _fundingRate;
+        pool.isActive = true;
+        
+        emit DerivativesPoolCreated(derivativesPoolCounter, _name, _underlyingAsset);
     }
 
-    function subscribeToSPlan(uint256 _planId) external nonReentrant updateActivity {
-        require(subscriptionEnabled, "Subscriptions disabled");
-        SubscriptionPlan storage plan = subscriptionPlans[_planId];
-        require(plan.isActive, "Plan not active");
-        require(plan.currentUsers < plan.maxUsers, "Plan at max capacity");
-        require(plan.subscribers[msg.sender] == 0, "Already subscribed");
-        
-        require(lendingToken.transferFrom(msg.sender, address(this), plan.monthlyFee), "Payment failed");
-        
-        plan.subscribers[msg.sender] = _planId;
-        plan.subscriptionExpiry[msg.sender] = block.timestamp.add(30 days);
-        plan.currentUsers = plan.currentUsers.add(1);
-        
-        // Award loyalty points for subscription
-        _awardLoyaltyPoints(msg.sender, plan.monthlyFee.div(100));
-        
-        emit UserSubscribed(msg.sender, _planId, plan.subscriptionExpiry[msg.sender]);
-    }
-
-    // NEW FEATURE 12: Credit Lines
-    function approveCreditLine(address _user, uint256 _creditLimit, uint256 _interestRate) external onlyOwner {
-        require(_creditLimit > 0, "Invalid credit limit");
-        
-        CreditLine storage creditLine = creditLines[_user];
-        creditLine.creditLimit = _creditLimit;
-        creditLine.usedCredit = 0;
-        creditLine.interestRate = _interestRate;
-        creditLine.lastPaymentTime = block.timestamp;
-        creditLine.minimumPayment = _creditLimit.div(12); // 1/12th monthly minimum
-        creditLine.isActive = true;
-        creditLine.creditScore = _calculateInitialCreditScore(_user);
-        creditLine.paymentHistory = 100; // Start with perfect score
-        
-        if (creditLine.creditLimit == _creditLimit) {
-            creditLineUsers.push(_user);
-            totalCreditLines = totalCreditLines.add(1);
-        }
-        
-        emit CreditLineApproved(_user, _creditLimit);
-    }
-
-    function drawFromCreditLine(uint256 _amount) external nonReentrant updateActivity {
-        CreditLine storage creditLine = creditLines[msg.sender];
-        require(creditLine.isActive, "Credit line not active");
-        require(creditLine.usedCredit.add(_amount) <= creditLine.creditLimit, "Exceeds credit limit");
-        require(availableLiquidity >= _amount, "Insufficient liquidity");
-        
-        creditLine.usedCredit = creditLine.usedCredit.add(_amount);
-        availableLiquidity = availableLiquidity.sub(_amount);
-        
-        require(lendingToken.transfer(msg.sender, _amount), "Transfer failed");
-        
-        emit CreditUsed(msg.sender, _amount, creditLine.creditLimit.sub(creditLine.usedCredit));
-    }
-
-    // NEW FEATURE 13: Options Trading
-    function createOption(
-        uint256 _strikePrice,
-        uint256 _expiryTime,
-        uint256 _premium,
-        bool _isCall,
-        uint256 _underlyingAmount,
-        address _underlyingToken
-    ) external nonReentrant updateActivity {
-        require(optionsEnabled, "Options disabled");
-        require(_expiryTime > block.timestamp, "Invalid expiry");
-        require(whitelistedTokens[_underlyingToken], "Token not supported");
-        
-        optionCounter = optionCounter.add(1);
-        
-        Option storage option = options[optionCounter];
-        option.id = optionCounter;
-        option.owner = msg.sender;
-        option.strikePrice = _strikePrice;
-        option.expiryTime = _expiryTime;
-        option.premium = _premium;
-        option.isCall = _isCall;
-        option.isExercised = false;
-        option.underlyingAmount = _underlyingAmount;
-        option.underlyingToken = _underlyingToken;
-        
-        // Collect premium
-        require(lendingToken.transferFrom(msg.sender, address(this), _premium), "Premium payment failed");
-        
-        emit OptionCreated(optionCounter, msg.sender, _strikePrice);
-    }
-
-    function exerciseOption(uint256 _optionId) external nonReentrant updateActivity {
-        Option storage option = options[_optionId];
-        require(!option.isExercised, "Already exercised");
-        require(block.timestamp <= option.expiryTime, "Option expired");
-        require(msg.sender != option.owner, "Cannot exercise own option");
-        
-        // Simplified exercise logic (would need oracle for real prices)
-        uint256 currentPrice = _getTokenPrice(option.underlyingToken);
-        uint256 profit = 0;
-        
-        if (option.isCall && currentPrice > option.strikePrice) {
-            profit = currentPrice.sub(option.strikePrice).mul(option.underlyingAmount).div(10**18);
-        } else if (!option.isCall && currentPrice < option.strikePrice) {
-            profit = option.strikePrice.sub(currentPrice).mul(option.underlyingAmount).div(10**18);
-        }
-        
-        require(profit > 0, "Option not profitable");
-        
-        option.isExercised = true;
-        
-        // Transfer profit
-        require(lendingToken.transfer(msg.sender, profit), "Profit transfer failed");
-        
-        emit OptionExercised(_optionId, msg.sender, profit);
-    }
-
-    // NEW FEATURE 14: Token Auction System
-    function createAuction(
+    function openDerivativePosition(
+        uint256 _poolId,
+        bool _isLong,
         uint256 _amount,
-        uint256 _startingPrice,
-        uint256 _duration,
-        address _tokenAddress
-    ) external nonReentrant updateActivity {
-        require(auctionEnabled, "Auctions disabled");
-        require(whitelistedTokens[_tokenAddress] || _tokenAddress == address(lendingToken), "Token not supported");
+        uint256 _leverage
+    ) external nonReentrant validDerivativesPool(_poolId) updateActivity {
+        DerivativesPool storage pool = derivativesPools[_poolId];
+        require(_leverage <= pool.maxLeverage, "Leverage too high");
+        require(_amount > 0, "Invalid amount");
         
-        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+        uint256 margin = _amount.div(_leverage);
+        uint256 positionSize = _amount;
         
-        auctionCounter = auctionCounter.add(1);
+        // Transfer margin
+        require(lendingToken.transferFrom(msg.sender, address(this), margin), "Margin transfer failed");
         
-        Auction storage auction = auctions[auctionCounter];
-        auction.id = auctionCounter;
-        auction.seller = msg.sender;
-        auction.amount = _amount;
-        auction.startingPrice = _startingPrice;
-        auction.currentBid = _startingPrice;
-        auction.highestBidder = address(0);
-        auction.endTime = block.timestamp.add(_duration);
-        auction.isActive = true;
-        auction.isCompleted = false;
-        auction.tokenAddress = _tokenAddress;
-        
-        emit AuctionCreated(auctionCounter, msg.sender, _startingPrice);
-    }
-
-    function placeBid(uint256 _auctionId, uint256 _bidAmount) external nonReentrant updateActivity {
-        Auction storage auction = auctions[_auctionId];
-        require(auction.isActive, "Auction not active");
-        require(block.timestamp < auction.endTime, "Auction ended");
-        require(_bidAmount > auction.currentBid, "Bid too low");
-        require(msg.sender != auction.seller, "Cannot bid on own auction");
-        
-        // Refund previous highest bidder
-        if (auction.highestBidder != address(0)) {
-            lendingToken.transfer(auction.highestBidder, auction.currentBid);
-        }
-        
-        // Transfer new bid
-        require(lendingToken.transferFrom(msg.sender, address(this), _bidAmount), "Bid transfer failed");
-        
-        auction.currentBid = _bidAmount;
-        auction.highestBidder = msg.sender;
-        
-        emit BidPlaced(_auctionId, msg.sender, _bidAmount);
-    }
-
-    function finalizeAuction(uint256 _auctionId) external nonReentrant {
-        Auction storage auction = auctions[_auctionId];
-        require(auction.isActive, "Auction not active");
-        require(block.timestamp >= auction.endTime, "Auction not ended");
-        require(!auction.isCompleted, "Already completed");
-        
-        auction.isActive = false;
-        auction.isCompleted = true;
-        
-        if (auction.highestBidder != address(0)) {
-            // Transfer tokens to winner
-            IERC20(auction.tokenAddress).transfer(auction.highestBidder, auction.amount);
-            // Transfer payment to seller
-            lendingToken.transfer(auction.seller, auction.currentBid);
-            
-            emit AuctionCompleted(_auctionId, auction.highestBidder, auction.currentBid);
+        if (_isLong) {
+            pool.totalLongs = pool.totalLongs.add(positionSize);
+            pool.userLongPositions[msg.sender] = pool.userLongPositions[msg.sender].add(positionSize);
         } else {
-            // No bids, return tokens to seller
-            IERC20(auction.tokenAddress).transfer(auction.seller, auction.amount);
+            pool.totalShorts = pool.totalShorts.add(positionSize);
+            pool.userShortPositions[msg.sender] = pool.userShortPositions[msg.sender].add(positionSize);
         }
+        
+        pool.userMargin[msg.sender] = pool.userMargin[msg.sender].add(margin);
+        
+        emit PositionOpened(_poolId, msg.sender, _isLong, _amount, _leverage);
     }
 
-    // NEW FEATURE 15: Escrow Services
-    function createEscrow(
-        address _seller,
+    // NEW FEATURE: Prediction Markets
+    function createPredictionMarket(
+        string memory _question,
+        string memory _category,
+        uint256 _duration,
+        address _oracle,
+        uint256 _creatorFee
+    ) external nonReentrant updateActivity {
+        require(predictionMarketsEnabled, "Prediction markets disabled");
+        require(_duration > 1 hours, "Duration too short");
+        require(_creatorFee <= 500, "Creator fee too high"); // Max 5%
+        
+        predictionMarketCounter = predictionMarketCounter.add(1);
+        
+        PredictionMarket storage market = predictionMarkets[predictionMarketCounter];
+        market.id = predictionMarketCounter;
+        market.question = _question;
+        market.category = _category;
+        market.endTime = block.timestamp.add(_duration);
+        market.oracle = _oracle;
+        market.creatorFee = _creatorFee;
+        
+        emit PredictionMarketCreated(predictionMarketCounter, _question, market.endTime);
+    }
+
+    function buyPredictionShares(
+        uint256 _marketId,
+        bool _isYes,
+        uint256 _amount
+    ) external nonReentrant validPredictionMarket(_marketId) updateActivity {
+        PredictionMarket storage market = predictionMarkets[_marketId];
+        require(_amount > 0, "Invalid amount");
+        
+        uint256 cost = _calculateShareCost(_marketId, _isYes, _amount);
+        require(lendingToken.transferFrom(msg.sender, address(this), cost), "Payment failed");
+        
+        if (_isYes) {
+            market.yesShares[msg.sender] = market.yesShares[msg.sender].add(_amount);
+            market.totalYesShares = market.totalYesShares.add(_amount);
+        } else {
+            market.noShares[msg.sender] = market.noShares[msg.sender].add(_amount);
+            market.totalNoShares = market.totalNoShares.add(_amount);
+        }
+        
+        market.totalVolume = market.totalVolume.add(cost);
+        
+        emit SharesPurchased(_marketId, msg.sender, _isYes, _amount);
+    }
+
+    // NEW FEATURE: Yield Strategies
+    function createYieldStrategy(
+        string memory _name,
+        address _targetToken,
+        uint256 _expectedAPY,
+        uint256 _riskLevel,
+        address _strategyContract,
+        uint256 _managementFee,
+        uint256 _performanceFee
+    ) external onlyStrategist {
+        require(yieldStrategiesEnabled, "Yield strategies disabled");
+        require(_riskLevel >= 1 && _riskLevel <= 10, "Invalid risk level");
+        require(_managementFee <= 200, "Management fee too high"); // Max 2%
+        require(_performanceFee <= 2000, "Performance fee too high"); // Max 20%
+        
+        yieldStrategyCounter = yieldStrategyCounter.add(1);
+        
+        YieldStrategy storage strategy = yieldStrategies[yieldStrategyCounter];
+        strategy.id = yieldStrategyCounter;
+        strategy.name = _name;
+        strategy.targetToken = _targetToken;
+        strategy.expectedAPY = _expectedAPY;
+        strategy.riskLevel = _riskLevel;
+        strategy.strategyContract = _strategyContract;
+        strategy.managementFee = _managementFee;
+        strategy.performanceFee = _performanceFee;
+        strategy.isActive = true;
+        
+        emit YieldStrategyCreated(yieldStrategyCounter, _name, _expectedAPY);
+    }
+
+    function depositToYieldStrategy(uint256 _strategyId, uint256 _amount) external nonReentrant updateActivity {
+        require(_strategyId > 0 && _strategyId <= yieldStrategyCounter, "Invalid strategy");
+        YieldStrategy storage strategy = yieldStrategies[_strategyId];
+        require(strategy.isActive, "Strategy not active");
+        require(_amount > 0, "Invalid amount");
+        
+        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Deposit failed");
+        
+        strategy.userDeposits[msg.sender] = strategy.userDeposits[msg.sender].add(_amount);
+        strategy.totalDeposited = strategy.totalDeposited.add(_amount);
+        
+        // Add to user's strategy list
+        userStrategies[msg.sender].push(_strategyId);
+        
+        emit StrategyDeposit(_strategyId, msg.sender, _amount);
+    }
+
+    // NEW FEATURE: Synthetic Assets
+    function createSyntheticAsset(
+        string memory _name,
+        string memory _symbol,
+        address _collateralToken,
+        uint256 _collateralRatio,
+        uint256 _liquidationRatio,
+        address _priceOracle
+    ) external onlyOwner {
+        require(syntheticAssetsEnabled, "Synthetic assets disabled");
+        require(_collateralRatio > _liquidationRatio, "Invalid ratios");
+        
+        syntheticAssetCounter = syntheticAssetCounter.add(1);
+        
+        SyntheticAsset storage asset = syntheticAssets[syntheticAssetCounter];
+        asset.id = syntheticAssetCounter;
+        asset.name = _name;
+        asset.symbol = _symbol;
+        asset.collateralToken = _collateralToken;
+        asset.collateralRatio = _collateralRatio;
+        asset.liquidationRatio = _liquidationRatio;
+        asset.priceOracle = _priceOracle;
+        asset.isActive = true;
+    }
+
+    function mintSyntheticAsset(
+        uint256 _assetId,
         uint256 _amount,
-        uint256 _releaseTime,
-        address _arbitrator  
+        uint256 _collateralAmount
+    ) external nonReentrant updateActivity {
+        require(_assetId > 0 && _assetId <= syntheticAssetCounter, "Invalid asset");
+        SyntheticAsset storage asset = syntheticAssets[_assetId];
+        require(asset.isActive, "Asset not active");
+        
+        uint256 requiredCollateral = _amount.mul(asset.collateralRatio).div(100);
+        require(_collateralAmount >= requiredCollateral, "Insufficient collateral");
+        
+        require(IERC20(asset.collateralToken).transferFrom(msg.sender, address(this), _collateralAmount), "Collateral transfer failed");
+        
+        asset.userMinted[msg.sender] = asset.userMinted[msg.sender].add(_amount);
+        asset.userCollateral[msg.sender] = asset.userCollateral[msg.sender].add(_collateralAmount);
+        asset.totalSupply = asset.totalSupply.add(_amount);
+        asset.totalCollateral = asset.totalCollateral.add(_collateralAmount);
+        
+        emit SyntheticAssetMinted(_assetId, msg.sender, _amount, _collateralAmount);
+    }
+
+    // NEW FEATURE: Advanced Insurance Pools
+    function createInsurancePool(
+        string memory _name,
+        uint256 _totalCoverage,
+        uint256 _premiumRate,
+        uint256 _maxClaim,
+        uint256 _claimPeriod
+    ) external onlyOwner {
+        require(advancedInsuranceEnabled, "Advanced insurance disabled");
+        
+        insurancePoolCounter = insurancePoolCounter.add(1);
+        
+        InsurancePool storage pool = insurancePools[insurancePoolCounter];
+        pool.id = insurancePoolCounter;
+        pool.name = _name;
+        pool.totalCoverage = _totalCoverage;
+        pool.availableCoverage = _totalCoverage;
+        pool.premiumRate = _premiumRate;
+        pool.maxClaim = _maxClaim;
+        pool.claimPeriod = _claimPeriod;
+        pool.isActive = true;
+    }
+
+    function purchaseInsurance(uint256 _poolId, uint256 _coverageAmount) external nonReentrant updateActivity {
+        require(_poolId > 0 && _poolId <= insurancePoolCounter, "Invalid pool");
+        InsurancePool storage pool = insurancePools[_poolId];
+        require(pool.isActive, "Pool not active");
+        require(_coverageAmount <= pool.availableCoverage, "Insufficient coverage available");
+        require(_coverageAmount <= pool.maxClaim, "Coverage exceeds maximum");
+        
+        uint256 premium = _coverageAmount.mul(pool.premiumRate).div(10000);
+        require(lendingToken.transferFrom(msg.sender, address(this), premium), "Premium payment failed");
+        
+        pool.userCoverage[msg.sender] = pool.userCoverage[msg.sender].add(_coverageAmount);
+        pool.userPremiums[msg.sender] = pool.userPremiums[msg.sender].add(premium);
+        pool.availableCoverage = pool.availableCoverage.sub(_coverageAmount);
+    }
+
+    // NEW FEATURE: Automated Trading Strategies
+    function createAutomatedStrategy(
+        string memory _strategyType,
+        uint256 _frequency,
+        uint256 _amount,
+        address _targetToken,
+        uint256 _maxSlippage
+    ) external nonReentrant updateActivity {
+        require(automatedStrategiesEnabled, "Automated strategies disabled");
+        require(_frequency >= 1 hours, "Frequency too high");
+        require(_maxSlippage <= 1000, "Slippage too high"); // Max 10%
+        
+        automatedStrategyCounter = automatedStrategyCounter.add(1);
+        
+        AutomatedStrategy storage strategy = automatedStrategies[automatedStrategyCounter];
+        strategy.id = automatedStrategyCounter;
+        strategy.owner = msg.sender;
+        strategy.strategyType = _strategyType;
+        strategy.frequency = _frequency;
+        strategy.amount = _amount;
+        strategy.targetToken = _targetToken;
+        strategy.maxSlippage = _maxSlippage;
+        strategy.isActive = true;
+        strategy.lastExecution = block.timestamp;
+        
+        emit AutomatedStrategyCreated(automatedStrategyCounter, msg.sender, _strategyType);
+    }
+
+    function executeAutomatedStrategy(uint256 _strategyId) external nonReentrant {
+        require(_strategyId > 0 && _strategyId <= automatedStrategyCounter, "Invalid strategy");
+        AutomatedStrategy storage strategy = automatedStrategies[_strategyId];
+        require(strategy.isActive, "Strategy not active");
+        require(block.timestamp >= strategy.lastExecution.add(strategy.frequency), "Too early");
+        
+        strategy.lastExecution = block.timestamp;
+        strategy.totalExecutions = strategy.totalExecutions.add(1);
+        
+        // Execute strategy logic based on type
+        _executeStrategyLogic(strategy);
+        
+        emit StrategyExecuted(_strategyId, block.timestamp, strategy.amount);
+    }
+
+    // NEW FEATURE: Margin Trading with Advanced Features
+    function openMarginPosition(
+        uint256 _amount,
+        uint256 _leverage,
+        address _targetToken
+    ) external nonReentrant updateActivity {
+        require(advancedLending.marginTradingEnabled, "Margin trading disabled");
+        require(_leverage <= advancedLending.maxLeverage, "Leverage too high");
+        require(whitelistedTokens[_targetToken], "Token not supported");
+        
+        uint256 margin = _amount.div(_leverage);
+        uint256 borrowAmount = _amount.sub(margin);
+        
+        require(lendingToken.transferFrom(msg.sender, address(this), margin), "Margin transfer failed");
+        require(availableLiquidity >= borrowAmount, "Insufficient liquidity");
+        
+        advancedLending.marginBalances[msg.sender] = advancedLending.marginBalances[msg.sender].add(margin);
+        advancedLending.borrowedAmounts[msg.sender] = advancedLending.borrowedAmounts[msg.sender].add(borrowAmount);
+        advancedLending.leveragePositions[msg.sender] = advancedLending.leveragePositions[msg.sender].add(_amount);
+        
+        availableLiquidity = availableLiquidity.sub(borrowAmount);
+        
+        emit MarginPositionOpened(msg.sender, _amount, _leverage);
+    }
+
+    // Helper Functions
+    function _calculateShareCost(uint256 _marketId, bool _isYes, uint256 _shares) internal view returns (uint256) {
+        PredictionMarket storage market = predictionMarkets[_marketId];
+        // Simplified bonding curve pricing
+        uint256 totalShares = _isYes ? market.totalYesShares : market.totalNoShares;
+        return _shares.mul(totalShares.add(1000)).div(1000); // Base cost with liquidity factor
+    }
+
+    function _executeStrategyLogic(AutomatedStrategy storage _strategy) internal {
+        // Implementation would depend on strategy type
+        // This is a placeholder for the actual strategy execution logic
+        if (keccak256(bytes(_strategy.strategyType)) == keccak256(bytes("DCA"))) {
+            // Dollar Cost Averaging logic
+            _executeDCAStrategy(_strategy);
+        } else if (keccak256(bytes(_strategy.strategyType)) == keccak256(bytes("REBALANCE"))) {
+            // Portfolio rebalancing logic
+            _executeRebalanceStrategy(_strategy);
+        }
+        // Add more strategy types as needed
+    }
+
+    function _executeDCAStrategy(AutomatedStrategy storage _strategy) internal {
+        // DCA implementation
+        require(lendingToken.balanceOf(address(this)) >= _strategy.amount, "Insufficient balance");
+        // Execute buy order for target token
+    }
+
+    function _executeRebalanceStrategy(AutomatedStrategy storage _strategy) internal {
+        // Rebalancing implementation
+        // This would involve calculating current portfolio weights and adjusting
+    }
+
+    function _getTokenPrice(address _token) internal view returns (uint256) {
+        // Placeholder for oracle price feed
+        // In production, this would integrate with Chainlink or other price oracles
+        return 1000 * 10**18; // $1000 placeholder price
+    }
+
+    function _updateGamification(address _user) internal {
+        // Update user activity and gamification metrics
+        lastActivity[_user] = block.timestamp;
+        // Additional gamification logic
+    }
+
+    function _awardLoyaltyPoints(address _user, uint256 _points) internal {
+        loyaltyPoints[_user] = loyaltyPoints[_user].add(_points);
+    }
+
+    function _calculateInitialCreditScore(address _user) internal view returns (uint256) {
+        // Calculate initial credit score based on various factors
+        return 750; // Placeholder credit score
+    }
+
+    function _initializeGamification() internal {
+        // Initialize gamification system
+        // Set up level requirements, achievements, etc.
+    }
+
+    function _createDefaultSubscriptionPlans() internal {
+        // Create default subscription plans
+    }
+
+    function _createDefaultStakingTiers() internal {
+        // Create default staking tiers
+    }
+
+    function _createDefaultLoanPackages() internal {
+        // Create default loan packages
+    }
+
+    // Administrative Functions
+    function toggleDerivatives() external onlyOwner {
+        derivativesEnabled = !derivativesEnabled;
+    }
+
+    function togglePredictionMarkets() external onlyOwner {
+        predictionMarketsEnabled = !predictionMarketsEnabled;
+    }
+
+    function toggleYieldStrategies() external onlyOwner {
+        yieldStrategiesEnabled = !yieldStrategiesEnabled;
+    }
+
+    function addStrategist(address _strategist) external onlyOwner {
+        strategists[_strategist] = true;
+    }
+
+    function removeStrategist(address _strategist) external onlyOwner {
+        strategists[_strategist] = false;
+    }
+
+    // View Functions
+    function getUserDerivativePositions(uint256 _poolId, address _user) external view returns (uint256 longPos, uint256 shortPos, uint256 margin) {
+        DerivativesPool storage pool = derivativesPools[_poolId];
+        return (pool.userLongPositions[_user], pool.userShortPositions[_user], pool.userMargin[_user]);
+    }
+
+    function getPredictionMarketInfo(uint256 _marketId) external view returns (string memory question, uint256 endTime, uint256 totalYes, uint256 totalNo) {
+        PredictionMarket storage market = predictionMarkets[_marketId];
+        return (market.question, market.endTime, market.totalYesShares, market
