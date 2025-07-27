@@ -8,13 +8,189 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
- * @title Enhanced Decentralized Lending Platform with Advanced Features
- * @dev A comprehensive lending platform with cutting-edge DeFi features
+ * @title Ultra-Enhanced Decentralized Lending Platform with Comprehensive DeFi Features
+ * @dev A complete DeFi ecosystem with cutting-edge features
  */
-contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
+contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     using SafeMath for uint256;
 
-    // NEW ADDITIONAL FEATURES - Flash Loans
+    // NEW ADVANCED FEATURES
+
+    // 1. Dynamic Interest Rate Model
+    struct InterestRateModel {
+        uint256 baseRate;           // Base interest rate
+        uint256 multiplier;         // Interest rate multiplier
+        uint256 jumpMultiplier;     // Jump multiplier after optimal utilization
+        uint256 optimalUtilization; // Optimal utilization rate
+        bool isActive;
+    }
+
+    // 2. Liquidation Engine with Dutch Auction
+    struct DutchAuction {
+        uint256 id;
+        address borrower;
+        address collateralToken;
+        uint256 collateralAmount;
+        uint256 debtAmount;
+        uint256 startPrice;
+        uint256 endPrice;
+        uint256 startTime;
+        uint256 duration;
+        bool isActive;
+        bool isCompleted;
+        address winner;
+        uint256 finalPrice;
+    }
+
+    // 3. Multi-Signature Governance Proposals
+    struct GovernanceProposal {
+        uint256 id;
+        string title;
+        string description;
+        address proposer;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 votesAbstain;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 executionTime;
+        bool isExecuted;
+        bool isActive;
+        ProposalType proposalType;
+        bytes callData;
+        mapping(address => bool) hasVoted;
+        mapping(address => VoteType) userVotes;
+    }
+
+    enum ProposalType { PARAMETER_CHANGE, CONTRACT_UPGRADE, TREASURY_SPENDING, EMERGENCY_ACTION }
+    enum VoteType { FOR, AGAINST, ABSTAIN }
+
+    // 4. Sophisticated Staking with Lock Periods and Multipliers
+    struct StakingTier {
+        uint256 id;
+        string name;
+        uint256 minStakeAmount;
+        uint256 lockPeriod;
+        uint256 rewardMultiplier;
+        uint256 maxCapacity;
+        uint256 currentStaked;
+        bool isActive;
+    }
+
+    struct UserStake {
+        uint256 tierId;
+        uint256 amount;
+        uint256 startTime;
+        uint256 lockEndTime;
+        uint256 pendingRewards;
+        uint256 claimedRewards;
+        bool isActive;
+    }
+
+    // 5. Automated Market Making (AMM) with Custom Curves
+    struct LiquidityPool {
+        uint256 id;
+        string name;
+        address tokenA;
+        address tokenB;
+        uint256 reserveA;
+        uint256 reserveB;
+        uint256 totalLPTokens;
+        uint256 feeRate;
+        CurveType curveType;
+        uint256 amplificationFactor; // For stable coin pools
+        bool isActive;
+        mapping(address => uint256) lpBalances;
+        mapping(address => uint256) feesEarned;
+    }
+
+    enum CurveType { CONSTANT_PRODUCT, STABLE_SWAP, WEIGHTED, CONCENTRATED }
+
+    // 6. Insurance Coverage with Risk Assessment
+    struct InsuranceCoverage {
+        uint256 id;
+        string coverageName;
+        address coveredProtocol;
+        uint256 coverageAmount;
+        uint256 premium;
+        uint256 startTime;
+        uint256 endTime;
+        RiskLevel riskLevel;
+        bool isActive;
+        bool hasClaimed;
+        address policyholder;
+        uint256 claimAmount;
+    }
+
+    enum RiskLevel { LOW, MEDIUM, HIGH, CRITICAL }
+
+    // 7. Real Estate Tokenization
+    struct RealEstateToken {
+        uint256 id;
+        string propertyName;
+        string location;
+        uint256 totalValue;
+        uint256 totalTokens;
+        uint256 tokensIssued;
+        uint256 annualRent;
+        address propertyManager;
+        bool isActive;
+        mapping(address => uint256) tokenHolders;
+        mapping(address => uint256) rentClaimed;
+        uint256 lastRentDistribution;
+    }
+
+    // 8. Decentralized Identity and Reputation System
+    struct UserProfile {
+        address userAddress;
+        string did; // Decentralized Identity
+        uint256 reputationScore;
+        uint256 totalTransactions;
+        uint256 successfulLiquidations;
+        uint256 defaultCount;
+        bool isKYCVerified;
+        bool isAccreditedInvestor;
+        mapping(bytes32 => bool) credentials;
+        mapping(address => uint256) peerRatings;
+    }
+
+    // 9. Perpetual Futures Trading
+    struct PerpetualPosition {
+        uint256 id;
+        address trader;
+        address underlying;
+        bool isLong;
+        uint256 size;
+        uint256 collateral;
+        uint256 leverage;
+        uint256 entryPrice;
+        uint256 liquidationPrice;
+        uint256 fundingPayment;
+        uint256 unrealizedPnL;
+        bool isActive;
+        uint256 lastFundingTime;
+    }
+
+    // 10. Algorithmic Stable Coin with Elastic Supply
+    struct StableCoinPool {
+        uint256 id;
+        string name;
+        address stableCoin;
+        address collateralToken;
+        uint256 targetPrice;
+        uint256 currentPrice;
+        uint256 totalSupply;
+        uint256 collateralRatio;
+        uint256 liquidationRatio;
+        RebalanceStrategy strategy;
+        bool isActive;
+        mapping(address => uint256) userMintedAmount;
+        mapping(address => uint256) userCollateral;
+    }
+
+    enum RebalanceStrategy { ALGORITHMIC, GOVERNANCE_CONTROLLED, HYBRID }
+
+    // EXISTING STRUCTURES (keeping all previous ones)
     struct FlashLoan {
         uint256 id;
         address borrower;
@@ -25,7 +201,6 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         bool isRepaid;
     }
 
-    // Cross-Chain Bridge Support
     struct CrossChainBridge {
         uint256 id;
         string destinationChain;
@@ -37,7 +212,6 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         mapping(bytes32 => bool) processedTransactions;
     }
 
-    // NFT Collateral System
     struct NFTCollateral {
         uint256 tokenId;
         address nftContract;
@@ -52,7 +226,6 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         address valuationOracle;
     }
 
-    // Vault System for Automated Yield Generation
     struct YieldVault {
         uint256 id;
         string name;
@@ -69,7 +242,6 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         address[] strategyContracts;
     }
 
-    // Advanced Order Book for DEX functionality
     struct OrderBook {
         uint256 orderId;
         address maker;
@@ -86,24 +258,6 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
 
     enum OrderType { MARKET, LIMIT, STOP_LOSS, TAKE_PROFIT }
 
-    // Liquidity Bootstrapping Pool
-    struct LiquidityBootstrapPool {
-        uint256 id;
-        string name;
-        address tokenA;
-        address tokenB;
-        uint256 initialWeightA;
-        uint256 initialWeightB;
-        uint256 finalWeightA;
-        uint256 finalWeightB;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 totalLiquidity;
-        bool isActive;
-        mapping(address => uint256) userContributions;
-    }
-
-    // Credit Delegation System
     struct CreditDelegation {
         address delegator;
         address delegatee;
@@ -115,14 +269,13 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         bool isActive;
     }
 
-    // Options Trading
     struct OptionsContract {
         uint256 id;
         address underlying;
         uint256 strikePrice;
         uint256 premium;
         uint256 expiry;
-        bool isCall; // true for call, false for put
+        bool isCall;
         address writer;
         address buyer;
         bool isExercised;
@@ -130,134 +283,124 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         uint256 collateralAmount;
     }
 
-    // EXISTING STRUCTURES (keeping all your original structures)
-    struct DerivativesPool {
-        uint256 id;
-        string name;
-        address underlyingAsset;
-        uint256 totalLiquidity;
-        uint256 totalShorts;
-        uint256 totalLongs;
-        uint256 fundingRate;
-        uint256 maxLeverage;
-        bool isActive;
-        mapping(address => uint256) userLongPositions;
-        mapping(address => uint256) userShortPositions;
-        mapping(address => uint256) userMargin;
-    }
-
-    struct PredictionMarket {
-        uint256 id;
-        string question;
-        string category;
-        uint256 endTime;
-        uint256 totalYesShares;
-        uint256 totalNoShares;
-        uint256 resolutionTime;
-        bool isResolved;
-        bool outcome;
-        address oracle;
-        mapping(address => uint256) yesShares;
-        mapping(address => uint256) noShares;
-        uint256 totalVolume;
-        uint256 creatorFee;
-    }
-
-    struct YieldStrategy {
-        uint256 id;
-        string name;
-        address targetToken;
-        uint256 totalDeposited;
-        uint256 expectedAPY;
-        uint256 riskLevel;
-        bool autoRebalance;
-        bool isActive;
-        address strategyContract;
-        uint256 managementFee;
-        uint256 performanceFee;
-        mapping(address => uint256) userDeposits;
-        mapping(address => uint256) userRewards;
-    }
-
     // STATE VARIABLES FOR NEW FEATURES
+    uint256 public dutchAuctionCounter;
+    uint256 public governanceProposalCounter;
+    uint256 public stakingTierCounter;
+    uint256 public liquidityPoolCounter;
+    uint256 public insuranceCoverageCounter;
+    uint256 public realEstateTokenCounter;
+    uint256 public perpetualPositionCounter;
+    uint256 public stableCoinPoolCounter;
+
+    // EXISTING COUNTERS
     uint256 public flashLoanCounter;
     uint256 public crossChainBridgeCounter;
     uint256 public nftCollateralCounter;
     uint256 public yieldVaultCounter;
     uint256 public orderBookCounter;
-    uint256 public lbpCounter;
     uint256 public creditDelegationCounter;
     uint256 public optionsCounter;
 
-    // Flash loan parameters
-    uint256 public flashLoanFeeRate = 9; // 0.09% fee
-    uint256 public constant FLASH_LOAN_FEE_PRECISION = 10000;
+    // NEW MAPPINGS
+    mapping(uint256 => DutchAuction) public dutchAuctions;
+    mapping(uint256 => GovernanceProposal) public governanceProposals;
+    mapping(uint256 => StakingTier) public stakingTiers;
+    mapping(address => mapping(uint256 => UserStake)) public userStakes;
+    mapping(uint256 => LiquidityPool) public liquidityPools;
+    mapping(uint256 => InsuranceCoverage) public insuranceCoverages;
+    mapping(uint256 => RealEstateToken) public realEstateTokens;
+    mapping(address => UserProfile) public userProfiles;
+    mapping(uint256 => PerpetualPosition) public perpetualPositions;
+    mapping(uint256 => StableCoinPool) public stableCoinPools;
+    mapping(address => InterestRateModel) public interestRateModels;
 
-    // Mappings for new features
+    // EXISTING MAPPINGS
     mapping(uint256 => FlashLoan) public flashLoans;
     mapping(uint256 => CrossChainBridge) public crossChainBridges;
     mapping(uint256 => NFTCollateral) public nftCollaterals;
     mapping(uint256 => YieldVault) public yieldVaults;
     mapping(uint256 => OrderBook) public orderBooks;
-    mapping(uint256 => LiquidityBootstrapPool) public lbpPools;
     mapping(uint256 => CreditDelegation) public creditDelegations;
     mapping(uint256 => OptionsContract) public optionsContracts;
-    
-    // Additional mappings
+
+    // ADDITIONAL MAPPINGS
     mapping(address => uint256[]) public userFlashLoans;
     mapping(address => uint256[]) public userNFTCollaterals;
     mapping(address => uint256[]) public userOrders;
+    mapping(address => uint256[]) public userStakingTiers;
+    mapping(address => uint256[]) public userLiquidityPools;
+    mapping(address => uint256[]) public userInsurancePolicies;
+    mapping(address => uint256[]) public userRealEstateTokens;
+    mapping(address => uint256[]) public userPerpetualPositions;
     mapping(address => bool) public authorizedNFTContracts;
     mapping(address => address) public nftPriceOracles;
+    mapping(address => bool) public whitelistedTokens;
+    mapping(address => uint256) public lastActivity;
+    mapping(address => uint256) public loyaltyPoints;
+    mapping(address => uint256) public totalFeesEarned;
+    mapping(address => bool) public strategists;
+    mapping(address => uint256) public reputationScores;
 
-    // ORIGINAL STATE VARIABLES (keeping all your existing ones)
-    uint256 public derivativesPoolCounter;
-    uint256 public predictionMarketCounter;
-    uint256 public yieldStrategyCounter;
-    uint256 public liquidityMiningCounter;
-    uint256 public syntheticAssetCounter;
-    uint256 public insurancePoolCounter;
-    uint256 public stakingPoolCounter;
-    uint256 public automatedStrategyCounter;
-    uint256 public rebaseTokenCounter;
+    // NEW FEATURE FLAGS
+    bool public dynamicInterestEnabled = true;
+    bool public dutchAuctionEnabled = true;
+    bool public governanceEnabled = true;
+    bool public advancedStakingEnabled = true;
+    bool public ammEnabled = true;
+    bool public insuranceEnabled = true;
+    bool public realEstateEnabled = true;
+    bool public perpetualTradingEnabled = true;
+    bool public algorithmicStableCoinEnabled = true;
 
-    bool public derivativesEnabled = true;
-    bool public predictionMarketsEnabled = true;
-    bool public yieldStrategiesEnabled = true;
-    bool public liquidityMiningEnabled = true;
-    bool public syntheticAssetsEnabled = true;
-    bool public advancedInsuranceEnabled = true;
-    bool public automatedStrategiesEnabled = true;
-    bool public rebaseTokensEnabled = true;
-    bool public daoEnabled = true;
-    
-    // New feature flags
+    // EXISTING FEATURE FLAGS
     bool public flashLoansEnabled = true;
     bool public crossChainEnabled = true;
     bool public nftCollateralEnabled = true;
     bool public yieldVaultsEnabled = true;
     bool public orderBookEnabled = true;
-    bool public lbpEnabled = true;
     bool public creditDelegationEnabled = true;
     bool public optionsEnabled = true;
 
-    // Mappings for existing features
-    mapping(uint256 => DerivativesPool) public derivativesPools;
-    mapping(uint256 => PredictionMarket) public predictionMarkets;
-    mapping(uint256 => YieldStrategy) public yieldStrategies;
-    mapping(address => uint256[]) public userStrategies;
-    mapping(address => uint256) public reputationScores;
-    mapping(address => bool) public strategists;
-    mapping(address => uint256) public totalFeesEarned;
+    // PROTOCOL PARAMETERS
+    uint256 public flashLoanFeeRate = 9; // 0.09% fee
+    uint256 public constant FLASH_LOAN_FEE_PRECISION = 10000;
+    uint256 public governanceQuorum = 4000; // 40% quorum required
+    uint256 public votingPeriod = 3 days;
+    uint256 public executionDelay = 1 days;
+    uint256 public maxLeverage = 10; // 10x max leverage
+    uint256 public liquidationThreshold = 8000; // 80%
+    uint256 public protocolTreasuryFee = 100; // 1%
 
-    // Additional variables
+    // CORE TOKENS
     IERC20 public lendingToken;
+    IERC20 public governanceToken;
     uint256 public availableLiquidity;
-    mapping(address => bool) public whitelistedTokens;
-    mapping(address => uint256) public lastActivity;
-    mapping(address => uint256) public loyaltyPoints;
 
     // NEW EVENTS
+    event DutchAuctionStarted(uint256 indexed auctionId, address indexed borrower, uint256 collateralAmount, uint256 startPrice);
+    event DutchAuctionCompleted(uint256 indexed auctionId, address indexed winner, uint256 finalPrice);
+    event GovernanceProposalCreated(uint256 indexed proposalId, address indexed proposer, string title);
+    event GovernanceVoteCast(uint256 indexed proposalId, address indexed voter, VoteType voteType, uint256 weight);
+    event StakingTierCreated(uint256 indexed tierId, string name, uint256 minStakeAmount, uint256 lockPeriod);
+    event UserStaked(uint256 indexed tierId, address indexed user, uint256 amount, uint256 lockEndTime);
+    event StakingRewardsClaimed(address indexed user, uint256 indexed tierId, uint256 rewardAmount);
+    event LiquidityPoolCreated(uint256 indexed poolId, string name, address tokenA, address tokenB);
+    event LiquidityAdded(uint256 indexed poolId, address indexed provider, uint256 amountA, uint256 amountB, uint256 lpTokens);
+    event LiquidityRemoved(uint256 indexed poolId, address indexed provider, uint256 lpTokens, uint256 amountA, uint256 amountB);
+    event TokensSwapped(uint256 indexed poolId, address indexed trader, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
+    event InsurancePolicyPurchased(uint256 indexed coverageId, address indexed policyholder, uint256 coverageAmount, uint256 premium);
+    event InsuranceClaimSubmitted(uint256 indexed coverageId, address indexed policyholder, uint256 claimAmount);
+    event RealEstateTokenized(uint256 indexed tokenId, string propertyName, uint256 totalValue, uint256 totalTokens);
+    event RealEstateRentDistributed(uint256 indexed tokenId, uint256 totalRentAmount, uint256 perTokenAmount);
+    event PerpetualPositionOpened(uint256 indexed positionId, address indexed trader, address underlying, bool isLong, uint256 size, uint256 leverage);
+    event PerpetualPositionClosed(uint256 indexed positionId, address indexed trader, uint256 pnl);
+    event StableCoinMinted(uint256 indexed poolId, address indexed user, uint256 collateralAmount, uint256 mintedAmount);
+    event StableCoinRedeemed(uint256 indexed poolId, address indexed user, uint256 burnedAmount, uint256 collateralReturned);
+    event InterestRateUpdated(address indexed token, uint256 newRate, uint256 utilizationRate);
+    event ReputationScoreUpdated(address indexed user, uint256 newScore, string reason);
+
+    // EXISTING EVENTS
     event FlashLoanInitiated(uint256 indexed loanId, address indexed borrower, address token, uint256 amount, uint256 fee);
     event FlashLoanRepaid(uint256 indexed loanId, address indexed borrower, uint256 totalAmount);
     event CrossChainTransferInitiated(uint256 indexed bridgeId, address indexed user, string destinationChain, uint256 amount);
@@ -267,20 +410,11 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
     event YieldVaultWithdraw(uint256 indexed vaultId, address indexed user, uint256 amount, uint256 yield);
     event OrderPlaced(uint256 indexed orderId, address indexed maker, address tokenA, address tokenB, uint256 amountA, uint256 price);
     event OrderFilled(uint256 indexed orderId, address indexed taker, uint256 filledAmount);
-    event LBPCreated(uint256 indexed poolId, string name, address tokenA, address tokenB);
     event CreditDelegated(address indexed delegator, address indexed delegatee, address asset, uint256 creditLimit);
     event OptionsContractCreated(uint256 indexed optionId, address indexed writer, address underlying, uint256 strikePrice, bool isCall);
     event OptionsExercised(uint256 indexed optionId, address indexed buyer, uint256 payout);
 
-    // EXISTING EVENTS (keeping your original events)
-    event DerivativesPoolCreated(uint256 indexed poolId, string name, address underlyingAsset);
-    event PositionOpened(uint256 indexed poolId, address indexed user, bool isLong, uint256 amount, uint256 leverage);
-    event PositionClosed(uint256 indexed poolId, address indexed user, uint256 pnl);
-    event PredictionMarketCreated(uint256 indexed marketId, string question, uint256 endTime);
-    event SharesPurchased(uint256 indexed marketId, address indexed user, bool isYes, uint256 shares);
-    event MarketResolved(uint256 indexed marketId, bool outcome);
-    
-    // Modifiers
+    // MODIFIERS
     modifier onlyStrategist() {
         require(strategists[msg.sender] || owner() == msg.sender, "Not authorized strategist");
         _;
@@ -291,418 +425,252 @@ contract EnhancedProject is ReentrancyGuard, Ownable, Pausable {
         _;
     }
 
+    modifier onlyKYCVerified() {
+        require(userProfiles[msg.sender].isKYCVerified, "KYC verification required");
+        _;
+    }
+
+    modifier onlyAccreditedInvestor() {
+        require(userProfiles[msg.sender].isAccreditedInvestor, "Accredited investor status required");
+        _;
+    }
+
     constructor() Ownable(msg.sender) {
         strategists[msg.sender] = true;
+        // Initialize default user profile for owner
+        userProfiles[msg.sender].userAddress = msg.sender;
+        userProfiles[msg.sender].reputationScore = 1000;
+        userProfiles[msg.sender].isKYCVerified = true;
+        userProfiles[msg.sender].isAccreditedInvestor = true;
     }
 
-    // NEW FEATURE 1: Flash Loans
-    function initiateFlashLoan(
+    // NEW FEATURE 1: Dynamic Interest Rate Model
+    function setInterestRateModel(
         address _token,
-        uint256 _amount,
-        bytes calldata _data
-    ) external nonReentrant {
-        require(flashLoansEnabled, "Flash loans disabled");
-        require(whitelistedTokens[_token], "Token not supported");
-        require(_amount > 0, "Invalid amount");
-        
-        IERC20 token = IERC20(_token);
-        require(token.balanceOf(address(this)) >= _amount, "Insufficient liquidity");
-        
-        flashLoanCounter = flashLoanCounter.add(1);
-        uint256 fee = _amount.mul(flashLoanFeeRate).div(FLASH_LOAN_FEE_PRECISION);
-        
-        FlashLoan storage loan = flashLoans[flashLoanCounter];
-        loan.id = flashLoanCounter;
-        loan.borrower = msg.sender;
-        loan.token = _token;
-        loan.amount = _amount;
-        loan.fee = fee;
-        loan.timestamp = block.timestamp;
-        
-        userFlashLoans[msg.sender].push(flashLoanCounter);
-        
-        // Transfer tokens to borrower
-        require(token.transfer(msg.sender, _amount), "Transfer failed");
-        
-        emit FlashLoanInitiated(flashLoanCounter, msg.sender, _token, _amount, fee);
-        
-        // Execute borrower's logic
-        IFlashLoanReceiver(msg.sender).receiveFlashLoan(_token, _amount, fee, _data);
-        
-        // Check repayment
-        uint256 totalRepayment = _amount.add(fee);
-        require(token.balanceOf(address(this)) >= totalRepayment, "Flash loan not repaid");
-        
-        loan.isRepaid = true;
-        emit FlashLoanRepaid(flashLoanCounter, msg.sender, totalRepayment);
-    }
-
-    // NEW FEATURE 2: Cross-Chain Bridge
-    function createCrossChainBridge(
-        string memory _destinationChain,
-        address _destinationContract,
-        uint256 _minAmount,
-        uint256 _maxAmount,
-        uint256 _bridgeFee
+        uint256 _baseRate,
+        uint256 _multiplier,
+        uint256 _jumpMultiplier,
+        uint256 _optimalUtilization
     ) external onlyOwner {
-        require(crossChainEnabled, "Cross-chain disabled");
+        require(dynamicInterestEnabled, "Dynamic interest rates disabled");
+        require(_optimalUtilization <= 10000, "Invalid optimal utilization");
         
-        crossChainBridgeCounter = crossChainBridgeCounter.add(1);
-        
-        CrossChainBridge storage bridge = crossChainBridges[crossChainBridgeCounter];
-        bridge.id = crossChainBridgeCounter;
-        bridge.destinationChain = _destinationChain;
-        bridge.destinationContract = _destinationContract;
-        bridge.minAmount = _minAmount;
-        bridge.maxAmount = _maxAmount;
-        bridge.bridgeFee = _bridgeFee;
-        bridge.isActive = true;
+        InterestRateModel storage model = interestRateModels[_token];
+        model.baseRate = _baseRate;
+        model.multiplier = _multiplier;
+        model.jumpMultiplier = _jumpMultiplier;
+        model.optimalUtilization = _optimalUtilization;
+        model.isActive = true;
     }
 
-    function initiateCrossChainTransfer(
-        uint256 _bridgeId,
-        uint256 _amount,
-        string memory _destinationAddress
-    ) external nonReentrant updateActivity {
-        require(_bridgeId > 0 && _bridgeId <= crossChainBridgeCounter, "Invalid bridge");
-        CrossChainBridge storage bridge = crossChainBridges[_bridgeId];
-        require(bridge.isActive, "Bridge not active");
-        require(_amount >= bridge.minAmount && _amount <= bridge.maxAmount, "Amount out of range");
+    function calculateInterestRate(address _token, uint256 _utilization) public view returns (uint256) {
+        InterestRateModel storage model = interestRateModels[_token];
+        if (!model.isActive) return 500; // Default 5% if no model set
         
-        uint256 totalAmount = _amount.add(bridge.bridgeFee);
-        require(lendingToken.transferFrom(msg.sender, address(this), totalAmount), "Transfer failed");
-        
-        // Generate unique transaction hash
-        bytes32 txHash = keccak256(abi.encodePacked(msg.sender, _amount, block.timestamp, _destinationAddress));
-        bridge.processedTransactions[txHash] = true;
-        
-        emit CrossChainTransferInitiated(_bridgeId, msg.sender, bridge.destinationChain, _amount);
-    }
-
-    // NEW FEATURE 3: NFT Collateral System
-    function authorizeNFTContract(address _nftContract, address _priceOracle) external onlyOwner {
-        authorizedNFTContracts[_nftContract] = true;
-        nftPriceOracles[_nftContract] = _priceOracle;
-    }
-
-    function depositNFTCollateral(
-        address _nftContract,
-        uint256 _tokenId,
-        uint256 _loanAmount,
-        uint256 _loanDuration
-    ) external nonReentrant updateActivity {
-        require(nftCollateralEnabled, "NFT collateral disabled");
-        require(authorizedNFTContracts[_nftContract], "NFT contract not authorized");
-        require(_loanDuration >= 7 days && _loanDuration <= 365 days, "Invalid loan duration");
-        
-        // Get NFT valuation
-        uint256 nftValue = _getNFTValuation(_nftContract, _tokenId);
-        require(_loanAmount <= nftValue.mul(75).div(100), "Loan amount too high"); // Max 75% LTV
-        
-        nftCollateralCounter = nftCollateralCounter.add(1);
-        
-        NFTCollateral storage collateral = nftCollaterals[nftCollateralCounter];
-        collateral.tokenId = _tokenId;
-        collateral.nftContract = _nftContract;
-        collateral.owner = msg.sender;
-        collateral.valuationAmount = nftValue;
-        collateral.loanAmount = _loanAmount;
-        collateral.interestRate = 1000; // 10% annual rate
-        collateral.loanDuration = _loanDuration;
-        collateral.startTime = block.timestamp;
-        collateral.isActive = true;
-        collateral.valuationOracle = nftPriceOracles[_nftContract];
-        
-        userNFTCollaterals[msg.sender].push(nftCollateralCounter);
-        
-        // Transfer NFT to contract (assuming ERC721)
-        IERC721(_nftContract).transferFrom(msg.sender, address(this), _tokenId);
-        
-        // Transfer loan amount to user
-        require(lendingToken.transfer(msg.sender, _loanAmount), "Loan transfer failed");
-        
-        emit NFTCollateralDeposited(nftCollateralCounter, msg.sender, _nftContract, _tokenId, _loanAmount);
-    }
-
-    function repayNFTLoan(uint256 _collateralId) external nonReentrant updateActivity {
-        require(_collateralId > 0 && _collateralId <= nftCollateralCounter, "Invalid collateral");
-        NFTCollateral storage collateral = nftCollaterals[_collateralId];
-        require(collateral.owner == msg.sender, "Not the owner");
-        require(collateral.isActive, "Collateral not active");
-        
-        uint256 interest = _calculateNFTLoanInterest(_collateralId);
-        uint256 totalRepayment = collateral.loanAmount.add(interest);
-        
-        require(lendingToken.transferFrom(msg.sender, address(this), totalRepayment), "Repayment failed");
-        
-        // Return NFT to owner
-        IERC721(collateral.nftContract).transferFrom(address(this), msg.sender, collateral.tokenId);
-        
-        collateral.isActive = false;
-    }
-
-    // NEW FEATURE 4: Yield Vaults
-    function createYieldVault(
-        string memory _name,
-        address _depositToken,
-        uint256 _lockPeriod,
-        uint256 _managementFee,
-        uint256 _withdrawalFee,
-        address[] memory _strategyContracts
-    ) external onlyOwner {
-        require(yieldVaultsEnabled, "Yield vaults disabled");
-        require(_managementFee <= 300, "Management fee too high"); // Max 3%
-        require(_withdrawalFee <= 100, "Withdrawal fee too high"); // Max 1%
-        
-        yieldVaultCounter = yieldVaultCounter.add(1);
-        
-        YieldVault storage vault = yieldVaults[yieldVaultCounter];
-        vault.id = yieldVaultCounter;
-        vault.name = _name;
-        vault.depositToken = _depositToken;
-        vault.lockPeriod = _lockPeriod;
-        vault.managementFee = _managementFee;
-        vault.withdrawalFee = _withdrawalFee;
-        vault.isActive = true;
-        vault.strategyContracts = _strategyContracts;
-    }
-
-    function depositToVault(uint256 _vaultId, uint256 _amount) external nonReentrant updateActivity {
-        require(_vaultId > 0 && _vaultId <= yieldVaultCounter, "Invalid vault");
-        YieldVault storage vault = yieldVaults[_vaultId];
-        require(vault.isActive, "Vault not active");
-        require(_amount > 0, "Invalid amount");
-        
-        require(IERC20(vault.depositToken).transferFrom(msg.sender, address(this), _amount), "Deposit failed");
-        
-        vault.userDeposits[msg.sender] = vault.userDeposits[msg.sender].add(_amount);
-        vault.depositTime[msg.sender] = block.timestamp;
-        vault.totalDeposits = vault.totalDeposits.add(_amount);
-        
-        emit YieldVaultDeposit(_vaultId, msg.sender, _amount);
-    }
-
-    function withdrawFromVault(uint256 _vaultId, uint256 _amount) external nonReentrant updateActivity {
-        require(_vaultId > 0 && _vaultId <= yieldVaultCounter, "Invalid vault");
-        YieldVault storage vault = yieldVaults[_vaultId];
-        require(vault.userDeposits[msg.sender] >= _amount, "Insufficient balance");
-        
-        uint256 withdrawalFee = 0;
-        if (block.timestamp < vault.depositTime[msg.sender].add(vault.lockPeriod)) {
-            withdrawalFee = _amount.mul(vault.withdrawalFee).div(10000);
+        if (_utilization <= model.optimalUtilization) {
+            return model.baseRate.add(_utilization.mul(model.multiplier).div(model.optimalUtilization));
+        } else {
+            uint256 normalRate = model.baseRate.add(model.multiplier);
+            uint256 excessUtilization = _utilization.sub(model.optimalUtilization);
+            uint256 maxExcessUtilization = uint256(10000).sub(model.optimalUtilization);
+            return normalRate.add(excessUtilization.mul(model.jumpMultiplier).div(maxExcessUtilization));
         }
-        
-        uint256 netAmount = _amount.sub(withdrawalFee);
-        uint256 yieldEarned = vault.earnedYield[msg.sender];
-        
-        vault.userDeposits[msg.sender] = vault.userDeposits[msg.sender].sub(_amount);
-        vault.earnedYield[msg.sender] = 0;
-        vault.totalDeposits = vault.totalDeposits.sub(_amount);
-        
-        require(IERC20(vault.depositToken).transfer(msg.sender, netAmount.add(yieldEarned)), "Withdrawal failed");
-        
-        emit YieldVaultWithdraw(_vaultId, msg.sender, netAmount, yieldEarned);
     }
 
-    // NEW FEATURE 5: Advanced Order Book (DEX functionality)
-    function placeOrder(
-        address _tokenA,
-        address _tokenB,
-        uint256 _amountA,
-        uint256 _amountB,
-        uint256 _price,
-        uint256 _expiry,
-        OrderType _orderType
-    ) external nonReentrant updateActivity {
-        require(orderBookEnabled, "Order book disabled");
-        require(whitelistedTokens[_tokenA] && whitelistedTokens[_tokenB], "Tokens not supported");
-        require(_amountA > 0 && _amountB > 0, "Invalid amounts");
-        require(_expiry > block.timestamp, "Invalid expiry");
-        
-        orderBookCounter = orderBookCounter.add(1);
-        
-        OrderBook storage order = orderBooks[orderBookCounter];
-        order.orderId = orderBookCounter;
-        order.maker = msg.sender;
-        order.tokenA = _tokenA;
-        order.tokenB = _tokenB;
-        order.amountA = _amountA;
-        order.amountB = _amountB;
-        order.price = _price;
-        order.expiry = _expiry;
-        order.orderType = _orderType;
-        order.isActive = true;
-        
-        userOrders[msg.sender].push(orderBookCounter);
-        
-        // Lock tokens for the order
-        require(IERC20(_tokenA).transferFrom(msg.sender, address(this), _amountA), "Token lock failed");
-        
-        emit OrderPlaced(orderBookCounter, msg.sender, _tokenA, _tokenB, _amountA, _price);
-    }
-
-    function fillOrder(uint256 _orderId, uint256 _fillAmount) external nonReentrant updateActivity {
-        require(_orderId > 0 && _orderId <= orderBookCounter, "Invalid order");
-        OrderBook storage order = orderBooks[_orderId];
-        require(order.isActive, "Order not active");
-        require(block.timestamp <= order.expiry, "Order expired");
-        require(_fillAmount <= order.amountA, "Fill amount too high");
-        
-        uint256 tokenBAmount = _fillAmount.mul(order.amountB).div(order.amountA);
-        
-        // Transfer tokens
-        require(IERC20(order.tokenB).transferFrom(msg.sender, order.maker, tokenBAmount), "Payment failed");
-        require(IERC20(order.tokenA).transfer(msg.sender, _fillAmount), "Token transfer failed");
-        
-        // Update order
-        order.amountA = order.amountA.sub(_fillAmount);
-        order.amountB = order.amountB.sub(tokenBAmount);
-        
-        if (order.amountA == 0) {
-            order.isActive = false;
-            order.isFilled = true;
-        }
-        
-        emit OrderFilled(_orderId, msg.sender, _fillAmount);
-    }
-
-    // NEW FEATURE 6: Credit Delegation
-    function delegateCredit(
-        address _delegatee,
-        address _asset,
-        uint256 _creditLimit,
-        uint256 _interestRate,
+    // NEW FEATURE 2: Dutch Auction Liquidation
+    function startDutchAuction(
+        address _borrower,
+        address _collateralToken,
+        uint256 _collateralAmount,
+        uint256 _debtAmount,
+        uint256 _startPrice,
+        uint256 _endPrice,
         uint256 _duration
+    ) external onlyStrategist {
+        require(dutchAuctionEnabled, "Dutch auctions disabled");
+        require(_startPrice > _endPrice, "Invalid price range");
+        require(_duration >= 1 hours && _duration <= 24 hours, "Invalid duration");
+        
+        dutchAuctionCounter = dutchAuctionCounter.add(1);
+        
+        DutchAuction storage auction = dutchAuctions[dutchAuctionCounter];
+        auction.id = dutchAuctionCounter;
+        auction.borrower = _borrower;
+        auction.collateralToken = _collateralToken;
+        auction.collateralAmount = _collateralAmount;
+        auction.debtAmount = _debtAmount;
+        auction.startPrice = _startPrice;
+        auction.endPrice = _endPrice;
+        auction.startTime = block.timestamp;
+        auction.duration = _duration;
+        auction.isActive = true;
+        
+        emit DutchAuctionStarted(dutchAuctionCounter, _borrower, _collateralAmount, _startPrice);
+    }
+
+    function bidOnDutchAuction(uint256 _auctionId) external payable nonReentrant updateActivity {
+        require(_auctionId > 0 && _auctionId <= dutchAuctionCounter, "Invalid auction");
+        DutchAuction storage auction = dutchAuctions[_auctionId];
+        require(auction.isActive, "Auction not active");
+        require(block.timestamp <= auction.startTime.add(auction.duration), "Auction ended");
+        
+        uint256 currentPrice = getCurrentAuctionPrice(_auctionId);
+        require(msg.value >= currentPrice, "Bid too low");
+        
+        // Transfer collateral to winner
+        require(IERC20(auction.collateralToken).transfer(msg.sender, auction.collateralAmount), "Collateral transfer failed");
+        
+        // Update auction state
+        auction.isActive = false;
+        auction.isCompleted = true;
+        auction.winner = msg.sender;
+        auction.finalPrice = currentPrice;
+        
+        // Return excess payment
+        if (msg.value > currentPrice) {
+            payable(msg.sender).transfer(msg.value.sub(currentPrice));
+        }
+        
+        emit DutchAuctionCompleted(_auctionId, msg.sender, currentPrice);
+    }
+
+    function getCurrentAuctionPrice(uint256 _auctionId) public view returns (uint256) {
+        DutchAuction storage auction = dutchAuctions[_auctionId];
+        if (!auction.isActive) return 0;
+        
+        uint256 timeElapsed = block.timestamp.sub(auction.startTime);
+        if (timeElapsed >= auction.duration) return auction.endPrice;
+        
+        uint256 priceDrop = auction.startPrice.sub(auction.endPrice);
+        uint256 currentDrop = priceDrop.mul(timeElapsed).div(auction.duration);
+        return auction.startPrice.sub(currentDrop);
+    }
+
+    // NEW FEATURE 3: Advanced Governance System
+    function createGovernanceProposal(
+        string memory _title,
+        string memory _description,
+        ProposalType _proposalType,
+        bytes memory _callData
     ) external nonReentrant updateActivity {
-        require(creditDelegationEnabled, "Credit delegation disabled");
-        require(whitelistedTokens[_asset], "Asset not supported");
-        require(_creditLimit > 0, "Invalid credit limit");
-        require(_duration >= 1 days && _duration <= 365 days, "Invalid duration");
+        require(governanceEnabled, "Governance disabled");
+        require(userProfiles[msg.sender].reputationScore >= 500, "Insufficient reputation to propose");
+        require(governanceToken.balanceOf(msg.sender) >= 1000 * 10**18, "Insufficient governance tokens");
         
-        creditDelegationCounter = creditDelegationCounter.add(1);
+        governanceProposalCounter = governanceProposalCounter.add(1);
         
-        CreditDelegation storage delegation = creditDelegations[creditDelegationCounter];
-        delegation.delegator = msg.sender;
-        delegation.delegatee = _delegatee;
-        delegation.asset = _asset;
-        delegation.creditLimit = _creditLimit;
-        delegation.interestRate = _interestRate;
-        delegation.expiryTime = block.timestamp.add(_duration);
-        delegation.isActive = true;
+        GovernanceProposal storage proposal = governanceProposals[governanceProposalCounter];
+        proposal.id = governanceProposalCounter;
+        proposal.title = _title;
+        proposal.description = _description;
+        proposal.proposer = msg.sender;
+        proposal.startTime = block.timestamp;
+        proposal.endTime = block.timestamp.add(votingPeriod);
+        proposal.executionTime = block.timestamp.add(votingPeriod).add(executionDelay);
+        proposal.proposalType = _proposalType;
+        proposal.callData = _callData;
+        proposal.isActive = true;
         
-        emit CreditDelegated(msg.sender, _delegatee, _asset, _creditLimit);
+        emit GovernanceProposalCreated(governanceProposalCounter, msg.sender, _title);
     }
 
-    function borrowOnCredit(uint256 _delegationId, uint256 _amount) external nonReentrant updateActivity {
-        require(_delegationId > 0 && _delegationId <= creditDelegationCounter, "Invalid delegation");
-        CreditDelegation storage delegation = creditDelegations[_delegationId];
-        require(delegation.delegatee == msg.sender, "Not authorized");
-        require(delegation.isActive, "Delegation not active");
-        require(block.timestamp <= delegation.expiryTime, "Delegation expired");
-        require(delegation.usedCredit.add(_amount) <= delegation.creditLimit, "Exceeds credit limit");
+    function voteOnProposal(uint256 _proposalId, VoteType _voteType) external nonReentrant updateActivity {
+        require(_proposalId > 0 && _proposalId <= governanceProposalCounter, "Invalid proposal");
+        GovernanceProposal storage proposal = governanceProposals[_proposalId];
+        require(proposal.isActive, "Proposal not active");
+        require(block.timestamp <= proposal.endTime, "Voting period ended");
+        require(!proposal.hasVoted[msg.sender], "Already voted");
         
-        delegation.usedCredit = delegation.usedCredit.add(_amount);
+        uint256 votingPower = governanceToken.balanceOf(msg.sender);
+        require(votingPower > 0, "No voting power");
         
-        require(IERC20(delegation.asset).transfer(msg.sender, _amount), "Borrow transfer failed");
-    }
-
-    // Helper Functions
-    function _getNFTValuation(address _nftContract, uint256 _tokenId) internal view returns (uint256) {
-        // This would integrate with NFT price oracles like OpenSea API or floor price feeds
-        // For now, returning a placeholder value
-        return 1000 * 10**18; // $1000 placeholder
-    }
-
-    function _calculateNFTLoanInterest(uint256 _collateralId) internal view returns (uint256) {
-        NFTCollateral storage collateral = nftCollaterals[_collateralId];
-        uint256 timeElapsed = block.timestamp.sub(collateral.startTime);
-        uint256 annualInterest = collateral.loanAmount.mul(collateral.interestRate).div(10000);
-        return annualInterest.mul(timeElapsed).div(365 days);
-    }
-
-    // Administrative Functions
-    function setFlashLoanFee(uint256 _newFeeRate) external onlyOwner {
-        require(_newFeeRate <= 100, "Fee too high"); // Max 1%
-        flashLoanFeeRate = _newFeeRate;
-    }
-
-    function toggleFlashLoans() external onlyOwner {
-        flashLoansEnabled = !flashLoansEnabled;
-    }
-
-    function toggleCrossChain() external onlyOwner {
-        crossChainEnabled = !crossChainEnabled;
-    }
-
-    function toggleNFTCollateral() external onlyOwner {
-        nftCollateralEnabled = !nftCollateralEnabled;
-    }
-
-    function toggleYieldVaults() external onlyOwner {
-        yieldVaultsEnabled = !yieldVaultsEnabled;
-    }
-
-    function toggleOrderBook() external onlyOwner {
-        orderBookEnabled = !orderBookEnabled;
-    }
-
-    function addWhitelistedToken(address _token) external onlyOwner {
-        whitelistedTokens[_token] = true;
-    }
-
-    function removeWhitelistedToken(address _token) external onlyOwner {
-        whitelistedTokens[_token] = false;
-    }
-
-    // View Functions
-    function getUserFlashLoans(address _user) external view returns (uint256[] memory) {
-        return userFlashLoans[_user];
-    }
-
-    function getUserNFTCollaterals(address _user) external view returns (uint256[] memory) {
-        return userNFTCollaterals[_user];
-    }
-
-    function getUserOrders(address _user) external view returns (uint256[] memory) {
-        return userOrders[_user];
-    }
-
-    function getFlashLoanInfo(uint256 _loanId) external view returns (
-        address borrower,
-        address token,
-        uint256 amount,
-        uint256 fee,
-        bool isRepaid
-    ) {
-        FlashLoan storage loan = flashLoans[_loanId];
-        return (loan.borrower, loan.token, loan.amount, loan.fee, loan.isRepaid);
-    }
-
-    function getVaultInfo(uint256 _vaultId) external view returns (
-        string memory name,
-        address depositToken,
-        uint256 totalDeposits,
-        uint256 currentAPY,
-        bool isActive
-    ) {
-        YieldVault storage vault = yieldVaults[_vaultId];
-        return (vault.name, vault.depositToken, vault.totalDeposits, vault.currentAPY, vault.isActive);
-    }
-
-    // Emergency Functions
-    function emergencyPause() external onlyOwner {
-        _pause();
-    }
-
-    function emergencyUnpause() external onlyOwner {
-       
+        proposal.hasVoted[msg.sender] = true;
+        proposal.userVotes[msg.sender] = _voteType;
         
-       
-       
+        if (_voteType == VoteType.FOR) {
+            proposal.votesFor = proposal.votesFor.add(votingPower);
+        } else if (_voteType == VoteType.AGAINST) {
+            proposal.votesAgainst = proposal.votesAgainst.add(votingPower);
+        } else {
+            proposal.votesAbstain = proposal.votesAbstain.add(votingPower);
+        }
         
+        emit GovernanceVoteCast(_proposalId, msg.sender, _voteType, votingPower);
+    }
+
+    function executeProposal(uint256 _proposalId) external nonReentrant {
+        require(_proposalId > 0 && _proposalId <= governanceProposalCounter, "Invalid proposal");
+        GovernanceProposal storage proposal = governanceProposals[_proposalId];
+        require(proposal.isActive, "Proposal not active");
+        require(block.timestamp >= proposal.executionTime, "Too early to execute");
+        require(!proposal.isExecuted, "Already executed");
         
-       
-    
-   
+        uint256 totalVotes = proposal.votesFor.add(proposal.votesAgainst).add(proposal.votesAbstain);
+        uint256 totalSupply = governanceToken.totalSupply();
+        require(totalVotes.mul(10000).div(totalSupply) >= governanceQuorum, "Quorum not reached");
+        require(proposal.votesFor > proposal.votesAgainst, "Proposal rejected");
         
+        proposal.isExecuted = true;
+        proposal.isActive = false;
         
+        // Execute the proposal (this would need specific implementation based on proposal type)
+        if (proposal.callData.length > 0) {
+            (bool success,) = address(this).call(proposal.callData);
+            require(success, "Proposal execution failed");
+        }
+    }
+
+    // NEW FEATURE 4: Advanced Staking with Tiers
+    function createStakingTier(
+        string memory _name,
+        uint256 _minStakeAmount,
+        uint256 _lockPeriod,
+        uint256 _rewardMultiplier,
+        uint256 _maxCapacity
+    ) external onlyOwner {
+        require(advancedStakingEnabled, "Advanced staking disabled");
+        require(_lockPeriod >= 1 days, "Lock period too short");
+        require(_rewardMultiplier >= 100 && _rewardMultiplier <= 1000, "Invalid multiplier");
+        
+        stakingTierCounter = stakingTierCounter.add(1);
+        
+        StakingTier storage tier = stakingTiers[stakingTierCounter];
+        tier.id = stakingTierCounter;
+        tier.name = _name;
+        tier.minStakeAmount = _minStakeAmount;
+        tier.lockPeriod = _lockPeriod;
+        tier.rewardMultiplier = _rewardMultiplier;
+        tier.maxCapacity = _maxCapacity;
+        tier.isActive = true;
+        
+        emit StakingTierCreated(stakingTierCounter, _name, _minStakeAmount, _lockPeriod);
+    }
+
+    function stakeTokens(uint256 _tierId, uint256 _amount) external nonReentrant updateActivity {
+        require(_tierId > 0 && _tierId <= stakingTierCounter, "Invalid tier");
+        StakingTier storage tier = stakingTiers[_tierId];
+        require(tier.isActive, "Tier not active");
+        require(_amount >= tier.minStakeAmount, "Amount below minimum");
+        require(tier.currentStaked.add(_amount) <= tier.maxCapacity, "Tier capacity exceeded");
+        
+        require(governanceToken.transferFrom(msg.sender, address(this), _amount), "Stake transfer failed");
+        
+        UserStake storage stake = userStakes[msg.sender][_tierId];
+        stake.tierId = _tierId;
+        stake.amount = stake.amount.add(_amount);
+        stake.startTime = block.timestamp;
+        stake.lockEndTime = block.timestamp.add(tier.lockPeriod);
+        stake.isActive = true;
+        
+        tier.currentStaked = tier.currentStaked.add(_amount);
+        userStakingTiers[msg.sender].push(_tierId);
+        
+        emit UserStaked(_tierId, msg.sender, _amount, stake.lockEndTime);
+    }
+
+    function unstakeTokens(uint256 _tierId) external nonReentrant updateActivity {
+        UserStake storage stake = userStakes[msg.sender][_tierId];
+        require(stake.isActive, "No active stake");
+        require(block.timestamp >= stake.lockEndTime, "Still locked");
+        
+        uint256
