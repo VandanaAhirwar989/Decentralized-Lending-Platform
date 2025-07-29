@@ -190,6 +190,143 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
 
     enum RebalanceStrategy { ALGORITHMIC, GOVERNANCE_CONTROLLED, HYBRID }
 
+    // ===== NEW FUNCTIONALITY 1: ADVANCED PORTFOLIO MANAGEMENT =====
+    struct Portfolio {
+        uint256 id;
+        address owner;
+        string name;
+        uint256 totalValue;
+        uint256 riskScore;
+        PortfolioStrategy strategy;
+        bool isActive;
+        bool isPublic;
+        uint256 managementFee;
+        uint256 performanceFee;
+        mapping(address => uint256) tokenAllocations;
+        mapping(address => uint256) targetAllocations;
+        uint256 lastRebalance;
+        uint256 totalInvestors;
+        mapping(address => uint256) investorShares;
+    }
+
+    enum PortfolioStrategy { CONSERVATIVE, BALANCED, AGGRESSIVE, CUSTOM }
+
+    struct RebalanceConfig {
+        uint256 threshold; // Percentage deviation that triggers rebalance
+        uint256 cooldownPeriod; // Minimum time between rebalances
+        bool autoRebalanceEnabled;
+        uint256 maxSlippage;
+    }
+
+    // ===== NEW FUNCTIONALITY 2: DECENTRALIZED DERIVATIVES EXCHANGE =====
+    struct DerivativeContract {
+        uint256 id;
+        DerivativeType derivativeType;
+        address underlying;
+        address creator;
+        uint256 notionalAmount;
+        uint256 strikePrice;
+        uint256 premium;
+        uint256 expiryTime;
+        uint256 marginRequirement;
+        bool isSettled;
+        bool isActive;
+        mapping(address => Position) positions;
+        uint256 totalLongPositions;
+        uint256 totalShortPositions;
+    }
+
+    struct Position {
+        uint256 size;
+        bool isLong;
+        uint256 entryPrice;
+        uint256 margin;
+        uint256 unrealizedPnL;
+        uint256 lastUpdateTime;
+    }
+
+    enum DerivativeType { SWAP, FORWARD, FUTURE, OPTION }
+
+    // ===== NEW FUNCTIONALITY 3: MULTI-CHAIN YIELD FARMING =====
+    struct YieldFarm {
+        uint256 id;
+        string name;
+        address[] tokens;
+        uint256[] weights;
+        uint256 totalStaked;
+        uint256 rewardRate;
+        uint256 lockPeriod;
+        uint256 withdrawalFee;
+        bool isActive;
+        mapping(address => FarmPosition) userPositions;
+        address[] rewardTokens;
+        uint256[] rewardRates;
+        uint256 lastRewardTime;
+    }
+
+    struct FarmPosition {
+        uint256 stakedAmount;
+        uint256 entryTime;
+        uint256 lockEndTime;
+        uint256 pendingRewards;
+        uint256 claimedRewards;
+        mapping(address => uint256) tokenRewards;
+    }
+
+    // ===== NEW FUNCTIONALITY 4: SOCIAL TRADING PLATFORM =====
+    struct Trader {
+        address traderAddress;
+        string username;
+        uint256 totalFollowers;
+        uint256 totalCopiers;
+        uint256 performanceScore;
+        uint256 riskScore;
+        uint256 totalPnL;
+        uint256 totalTrades;
+        uint256 winRate;
+        bool isVerified;
+        mapping(address => bool) followers;
+        mapping(address => CopyTradeConfig) copyTraders;
+    }
+
+    struct CopyTradeConfig {
+        uint256 copyAmount;
+        uint256 maxRiskPerTrade;
+        uint256 stopLossPercent;
+        uint256 takeProfitPercent;
+        bool isActive;
+        mapping(address => bool) allowedTokens;
+    }
+
+    // ===== NEW FUNCTIONALITY 5: CROSS-CHAIN BRIDGE WITH VALIDATION =====
+    struct BridgeTransaction {
+        uint256 id;
+        address sender;
+        address recipient;
+        address token;
+        uint256 amount;
+        string sourceChain;
+        string destinationChain;
+        bytes32 txHash;
+        BridgeStatus status;
+        uint256 timestamp;
+        uint256 validatorCount;
+        mapping(address => bool) validatorApprovals;
+        uint256 fee;
+    }
+
+    enum BridgeStatus { PENDING, VALIDATED, COMPLETED, FAILED, DISPUTED }
+
+    struct ChainConfig {
+        string chainName;
+        address bridgeContract;
+        uint256 minValidators;
+        uint256 bridgeFee;
+        bool isActive;
+        mapping(address => bool) validators;
+        uint256 validatorCount;
+    }
+
     // EXISTING STRUCTURES (keeping all previous ones)
     struct FlashLoan {
         uint256 id;
@@ -293,6 +430,12 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     uint256 public perpetualPositionCounter;
     uint256 public stableCoinPoolCounter;
 
+    // NEW FEATURE COUNTERS
+    uint256 public portfolioCounter;
+    uint256 public derivativeCounter;
+    uint256 public yieldFarmCounter;
+    uint256 public bridgeTransactionCounter;
+
     // EXISTING COUNTERS
     uint256 public flashLoanCounter;
     uint256 public crossChainBridgeCounter;
@@ -314,6 +457,18 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     mapping(uint256 => PerpetualPosition) public perpetualPositions;
     mapping(uint256 => StableCoinPool) public stableCoinPools;
     mapping(address => InterestRateModel) public interestRateModels;
+
+    // NEW FUNCTIONALITY MAPPINGS
+    mapping(uint256 => Portfolio) public portfolios;
+    mapping(address => uint256[]) public userPortfolios;
+    mapping(uint256 => RebalanceConfig) public rebalanceConfigs;
+    mapping(uint256 => DerivativeContract) public derivativeContracts;
+    mapping(uint256 => YieldFarm) public yieldFarms;
+    mapping(address => Trader) public traders;
+    mapping(address => address[]) public followedTraders;
+    mapping(uint256 => BridgeTransaction) public bridgeTransactions;
+    mapping(string => ChainConfig) public chainConfigs;
+    mapping(address => bool) public bridgeValidators;
 
     // EXISTING MAPPINGS
     mapping(uint256 => FlashLoan) public flashLoans;
@@ -352,6 +507,13 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     bool public realEstateEnabled = true;
     bool public perpetualTradingEnabled = true;
     bool public algorithmicStableCoinEnabled = true;
+    
+    // NEW FUNCTIONALITY FLAGS
+    bool public portfolioManagementEnabled = true;
+    bool public derivativesEnabled = true;
+    bool public yieldFarmingEnabled = true;
+    bool public socialTradingEnabled = true;
+    bool public crossChainBridgeEnabled = true;
 
     // EXISTING FEATURE FLAGS
     bool public flashLoansEnabled = true;
@@ -376,6 +538,21 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     IERC20 public lendingToken;
     IERC20 public governanceToken;
     uint256 public availableLiquidity;
+
+    // NEW EVENTS FOR ADDED FUNCTIONALITY
+    event PortfolioCreated(uint256 indexed portfolioId, address indexed owner, string name, PortfolioStrategy strategy);
+    event PortfolioRebalanced(uint256 indexed portfolioId, address indexed rebalancer, uint256 timestamp);
+    event PortfolioInvestment(uint256 indexed portfolioId, address indexed investor, uint256 amount, uint256 shares);
+    event DerivativeContractCreated(uint256 indexed contractId, DerivativeType derivativeType, address indexed creator, address underlying);
+    event DerivativePositionOpened(uint256 indexed contractId, address indexed trader, bool isLong, uint256 size, uint256 margin);
+    event YieldFarmCreated(uint256 indexed farmId, string name, address[] tokens, uint256 rewardRate);
+    event YieldFarmStaked(uint256 indexed farmId, address indexed user, uint256 amount, uint256 lockEndTime);
+    event TraderRegistered(address indexed trader, string username);
+    event TradeAction(address indexed trader, address indexed token, bool isBuy, uint256 amount, uint256 price);
+    event CopyTradeExecuted(address indexed originalTrader, address indexed copyTrader, address token, uint256 amount);
+    event BridgeTransactionInitiated(uint256 indexed txId, address indexed sender, string sourceChain, string destinationChain, uint256 amount);
+    event BridgeTransactionValidated(uint256 indexed txId, address indexed validator);
+    event BridgeTransactionCompleted(uint256 indexed txId, address indexed recipient, uint256 amount);
 
     // NEW EVENTS
     event DutchAuctionStarted(uint256 indexed auctionId, address indexed borrower, uint256 collateralAmount, uint256 startPrice);
@@ -435,8 +612,14 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
         _;
     }
 
+    modifier onlyValidator() {
+        require(bridgeValidators[msg.sender], "Not authorized validator");
+        _;
+    }
+
     constructor() Ownable(msg.sender) {
         strategists[msg.sender] = true;
+        bridgeValidators[msg.sender] = true;
         // Initialize default user profile for owner
         userProfiles[msg.sender].userAddress = msg.sender;
         userProfiles[msg.sender].reputationScore = 1000;
@@ -444,233 +627,99 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
         userProfiles[msg.sender].isAccreditedInvestor = true;
     }
 
-    // NEW FEATURE 1: Dynamic Interest Rate Model
-    function setInterestRateModel(
-        address _token,
-        uint256 _baseRate,
-        uint256 _multiplier,
-        uint256 _jumpMultiplier,
-        uint256 _optimalUtilization
-    ) external onlyOwner {
-        require(dynamicInterestEnabled, "Dynamic interest rates disabled");
-        require(_optimalUtilization <= 10000, "Invalid optimal utilization");
-        
-        InterestRateModel storage model = interestRateModels[_token];
-        model.baseRate = _baseRate;
-        model.multiplier = _multiplier;
-        model.jumpMultiplier = _jumpMultiplier;
-        model.optimalUtilization = _optimalUtilization;
-        model.isActive = true;
-    }
-
-    function calculateInterestRate(address _token, uint256 _utilization) public view returns (uint256) {
-        InterestRateModel storage model = interestRateModels[_token];
-        if (!model.isActive) return 500; // Default 5% if no model set
-        
-        if (_utilization <= model.optimalUtilization) {
-            return model.baseRate.add(_utilization.mul(model.multiplier).div(model.optimalUtilization));
-        } else {
-            uint256 normalRate = model.baseRate.add(model.multiplier);
-            uint256 excessUtilization = _utilization.sub(model.optimalUtilization);
-            uint256 maxExcessUtilization = uint256(10000).sub(model.optimalUtilization);
-            return normalRate.add(excessUtilization.mul(model.jumpMultiplier).div(maxExcessUtilization));
-        }
-    }
-
-    // NEW FEATURE 2: Dutch Auction Liquidation
-    function startDutchAuction(
-        address _borrower,
-        address _collateralToken,
-        uint256 _collateralAmount,
-        uint256 _debtAmount,
-        uint256 _startPrice,
-        uint256 _endPrice,
-        uint256 _duration
-    ) external onlyStrategist {
-        require(dutchAuctionEnabled, "Dutch auctions disabled");
-        require(_startPrice > _endPrice, "Invalid price range");
-        require(_duration >= 1 hours && _duration <= 24 hours, "Invalid duration");
-        
-        dutchAuctionCounter = dutchAuctionCounter.add(1);
-        
-        DutchAuction storage auction = dutchAuctions[dutchAuctionCounter];
-        auction.id = dutchAuctionCounter;
-        auction.borrower = _borrower;
-        auction.collateralToken = _collateralToken;
-        auction.collateralAmount = _collateralAmount;
-        auction.debtAmount = _debtAmount;
-        auction.startPrice = _startPrice;
-        auction.endPrice = _endPrice;
-        auction.startTime = block.timestamp;
-        auction.duration = _duration;
-        auction.isActive = true;
-        
-        emit DutchAuctionStarted(dutchAuctionCounter, _borrower, _collateralAmount, _startPrice);
-    }
-
-    function bidOnDutchAuction(uint256 _auctionId) external payable nonReentrant updateActivity {
-        require(_auctionId > 0 && _auctionId <= dutchAuctionCounter, "Invalid auction");
-        DutchAuction storage auction = dutchAuctions[_auctionId];
-        require(auction.isActive, "Auction not active");
-        require(block.timestamp <= auction.startTime.add(auction.duration), "Auction ended");
-        
-        uint256 currentPrice = getCurrentAuctionPrice(_auctionId);
-        require(msg.value >= currentPrice, "Bid too low");
-        
-        // Transfer collateral to winner
-        require(IERC20(auction.collateralToken).transfer(msg.sender, auction.collateralAmount), "Collateral transfer failed");
-        
-        // Update auction state
-        auction.isActive = false;
-        auction.isCompleted = true;
-        auction.winner = msg.sender;
-        auction.finalPrice = currentPrice;
-        
-        // Return excess payment
-        if (msg.value > currentPrice) {
-            payable(msg.sender).transfer(msg.value.sub(currentPrice));
-        }
-        
-        emit DutchAuctionCompleted(_auctionId, msg.sender, currentPrice);
-    }
-
-    function getCurrentAuctionPrice(uint256 _auctionId) public view returns (uint256) {
-        DutchAuction storage auction = dutchAuctions[_auctionId];
-        if (!auction.isActive) return 0;
-        
-        uint256 timeElapsed = block.timestamp.sub(auction.startTime);
-        if (timeElapsed >= auction.duration) return auction.endPrice;
-        
-        uint256 priceDrop = auction.startPrice.sub(auction.endPrice);
-        uint256 currentDrop = priceDrop.mul(timeElapsed).div(auction.duration);
-        return auction.startPrice.sub(currentDrop);
-    }
-
-    // NEW FEATURE 3: Advanced Governance System
-    function createGovernanceProposal(
-        string memory _title,
-        string memory _description,
-        ProposalType _proposalType,
-        bytes memory _callData
-    ) external nonReentrant updateActivity {
-        require(governanceEnabled, "Governance disabled");
-        require(userProfiles[msg.sender].reputationScore >= 500, "Insufficient reputation to propose");
-        require(governanceToken.balanceOf(msg.sender) >= 1000 * 10**18, "Insufficient governance tokens");
-        
-        governanceProposalCounter = governanceProposalCounter.add(1);
-        
-        GovernanceProposal storage proposal = governanceProposals[governanceProposalCounter];
-        proposal.id = governanceProposalCounter;
-        proposal.title = _title;
-        proposal.description = _description;
-        proposal.proposer = msg.sender;
-        proposal.startTime = block.timestamp;
-        proposal.endTime = block.timestamp.add(votingPeriod);
-        proposal.executionTime = block.timestamp.add(votingPeriod).add(executionDelay);
-        proposal.proposalType = _proposalType;
-        proposal.callData = _callData;
-        proposal.isActive = true;
-        
-        emit GovernanceProposalCreated(governanceProposalCounter, msg.sender, _title);
-    }
-
-    function voteOnProposal(uint256 _proposalId, VoteType _voteType) external nonReentrant updateActivity {
-        require(_proposalId > 0 && _proposalId <= governanceProposalCounter, "Invalid proposal");
-        GovernanceProposal storage proposal = governanceProposals[_proposalId];
-        require(proposal.isActive, "Proposal not active");
-        require(block.timestamp <= proposal.endTime, "Voting period ended");
-        require(!proposal.hasVoted[msg.sender], "Already voted");
-        
-        uint256 votingPower = governanceToken.balanceOf(msg.sender);
-        require(votingPower > 0, "No voting power");
-        
-        proposal.hasVoted[msg.sender] = true;
-        proposal.userVotes[msg.sender] = _voteType;
-        
-        if (_voteType == VoteType.FOR) {
-            proposal.votesFor = proposal.votesFor.add(votingPower);
-        } else if (_voteType == VoteType.AGAINST) {
-            proposal.votesAgainst = proposal.votesAgainst.add(votingPower);
-        } else {
-            proposal.votesAbstain = proposal.votesAbstain.add(votingPower);
-        }
-        
-        emit GovernanceVoteCast(_proposalId, msg.sender, _voteType, votingPower);
-    }
-
-    function executeProposal(uint256 _proposalId) external nonReentrant {
-        require(_proposalId > 0 && _proposalId <= governanceProposalCounter, "Invalid proposal");
-        GovernanceProposal storage proposal = governanceProposals[_proposalId];
-        require(proposal.isActive, "Proposal not active");
-        require(block.timestamp >= proposal.executionTime, "Too early to execute");
-        require(!proposal.isExecuted, "Already executed");
-        
-        uint256 totalVotes = proposal.votesFor.add(proposal.votesAgainst).add(proposal.votesAbstain);
-        uint256 totalSupply = governanceToken.totalSupply();
-        require(totalVotes.mul(10000).div(totalSupply) >= governanceQuorum, "Quorum not reached");
-        require(proposal.votesFor > proposal.votesAgainst, "Proposal rejected");
-        
-        proposal.isExecuted = true;
-        proposal.isActive = false;
-        
-        // Execute the proposal (this would need specific implementation based on proposal type)
-        if (proposal.callData.length > 0) {
-            (bool success,) = address(this).call(proposal.callData);
-            require(success, "Proposal execution failed");
-        }
-    }
-
-    // NEW FEATURE 4: Advanced Staking with Tiers
-    function createStakingTier(
+    // ===== NEW FUNCTIONALITY 1: ADVANCED PORTFOLIO MANAGEMENT =====
+    
+    function createPortfolio(
         string memory _name,
-        uint256 _minStakeAmount,
-        uint256 _lockPeriod,
-        uint256 _rewardMultiplier,
-        uint256 _maxCapacity
-    ) external onlyOwner {
-        require(advancedStakingEnabled, "Advanced staking disabled");
-        require(_lockPeriod >= 1 days, "Lock period too short");
-        require(_rewardMultiplier >= 100 && _rewardMultiplier <= 1000, "Invalid multiplier");
+        PortfolioStrategy _strategy,
+        bool _isPublic,
+        uint256 _managementFee,
+        uint256 _performanceFee
+    ) external nonReentrant updateActivity {
+        require(portfolioManagementEnabled, "Portfolio management disabled");
+        require(_managementFee <= 500, "Management fee too high"); // Max 5%
+        require(_performanceFee <= 2000, "Performance fee too high"); // Max 20%
         
-        stakingTierCounter = stakingTierCounter.add(1);
+        portfolioCounter = portfolioCounter.add(1);
         
-        StakingTier storage tier = stakingTiers[stakingTierCounter];
-        tier.id = stakingTierCounter;
-        tier.name = _name;
-        tier.minStakeAmount = _minStakeAmount;
-        tier.lockPeriod = _lockPeriod;
-        tier.rewardMultiplier = _rewardMultiplier;
-        tier.maxCapacity = _maxCapacity;
-        tier.isActive = true;
+        Portfolio storage portfolio = portfolios[portfolioCounter];
+        portfolio.id = portfolioCounter;
+        portfolio.owner = msg.sender;
+        portfolio.name = _name;
+        portfolio.strategy = _strategy;
+        portfolio.isActive = true;
+        portfolio.isPublic = _isPublic;
+        portfolio.managementFee = _managementFee;
+        portfolio.performanceFee = _performanceFee;
+        portfolio.lastRebalance = block.timestamp;
         
-        emit StakingTierCreated(stakingTierCounter, _name, _minStakeAmount, _lockPeriod);
+        userPortfolios[msg.sender].push(portfolioCounter);
+        
+        emit PortfolioCreated(portfolioCounter, msg.sender, _name, _strategy);
     }
 
-    function stakeTokens(uint256 _tierId, uint256 _amount) external nonReentrant updateActivity {
-        require(_tierId > 0 && _tierId <= stakingTierCounter, "Invalid tier");
-        StakingTier storage tier = stakingTiers[_tierId];
-        require(tier.isActive, "Tier not active");
-        require(_amount >= tier.minStakeAmount, "Amount below minimum");
-        require(tier.currentStaked.add(_amount) <= tier.maxCapacity, "Tier capacity exceeded");
+    function investInPortfolio(uint256 _portfolioId, uint256 _amount) external nonReentrant updateActivity {
+        require(_portfolioId > 0 && _portfolioId <= portfolioCounter, "Invalid portfolio");
+        Portfolio storage portfolio = portfolios[_portfolioId];
+        require(portfolio.isActive, "Portfolio not active");
+        require(portfolio.isPublic || portfolio.owner == msg.sender, "Portfolio not public");
         
-        require(governanceToken.transferFrom(msg.sender, address(this), _amount), "Stake transfer failed");
+        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Investment transfer failed");
         
-        UserStake storage stake = userStakes[msg.sender][_tierId];
-        stake.tierId = _tierId;
-        stake.amount = stake.amount.add(_amount);
-        stake.startTime = block.timestamp;
-        stake.lockEndTime = block.timestamp.add(tier.lockPeriod);
-        stake.isActive = true;
+        uint256 shares = _amount; // Simplified share calculation
+        if (portfolio.totalValue > 0) {
+            shares = _amount.mul(portfolio.totalInvestors).div(portfolio.totalValue);
+        }
         
-        tier.currentStaked = tier.currentStaked.add(_amount);
-        userStakingTiers[msg.sender].push(_tierId);
+        portfolio.investorShares[msg.sender] = portfolio.investorShares[msg.sender].add(shares);
+        portfolio.totalValue = portfolio.totalValue.add(_amount);
+        portfolio.totalInvestors = portfolio.totalInvestors.add(1);
         
-        emit UserStaked(_tierId, msg.sender, _amount, stake.lockEndTime);
+        emit PortfolioInvestment(_portfolioId, msg.sender, _amount, shares);
     }
 
-    function unstakeTokens(uint256 _tierId) external nonReentrant updateActivity {
-        UserStake storage stake = userStakes[msg.sender][_tierId];
-        require(stake.isActive, "No active stake");
-        require(block.timestamp >= stake.lockEndTime, "Still locked");
+    function rebalancePortfolio(uint256 _portfolioId) external nonReentrant {
+        require(_portfolioId > 0 && _portfolioId <= portfolioCounter, "Invalid portfolio");
+        Portfolio storage portfolio = portfolios[_portfolioId];
+        require(portfolio.isActive, "Portfolio not active");
+        require(portfolio.owner == msg.sender || strategists[msg.sender], "Not authorized");
         
-        uint256
+        RebalanceConfig storage config = rebalanceConfigs[_portfolioId];
+        require(block.timestamp >= portfolio.lastRebalance.add(config.cooldownPeriod), "Cooldown period not met");
+        
+        // Rebalancing logic would go here
+        portfolio.lastRebalance = block.timestamp;
+        
+        emit PortfolioRebalanced(_portfolioId, msg.sender, block.timestamp);
+    }
+
+    // ===== NEW FUNCTIONALITY 2: DECENTRALIZED DERIVATIVES EXCHANGE =====
+    
+    function createDerivativeContract(
+        DerivativeType _derivativeType,
+        address _underlying,
+        uint256 _notionalAmount,
+        uint256 _strikePrice,
+        uint256 _premium,
+        uint256 _expiryTime,
+        uint256 _marginRequirement
+    ) external nonReentrant updateActivity onlyKYCVerified {
+        require(derivativesEnabled, "Derivatives disabled");
+        require(_expiryTime > block.timestamp, "Invalid expiry time");
+        require(_marginRequirement >= _notionalAmount.div(10), "Insufficient margin requirement");
+        
+        derivativeCounter = derivativeCounter.add(1);
+        
+        DerivativeContract storage derivative = derivativeContracts[derivativeCounter];
+        derivative.id = derivativeCounter;
+        derivative.derivativeType = _derivativeType;
+        derivative.underlying = _underlying;
+        derivative.creator = msg.sender;
+        derivative.notionalAmount = _notionalAmount;
+        derivative.strikePrice = _strikePrice;
+        derivative.premium = _premium;
+        derivative.expiryTime = _expiryTime;
+        derivative.marginRequirement = _marginRequirement;
+        derivative.isActive = true;
+        
+        emit DerivativeCont
