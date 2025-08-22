@@ -9,14 +9,13 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @title Ultra-Enhanced Decentralized Lending Platform with Comprehensive DeFi Features
- * @dev A complete DeFi ecosystem with cutting-edge features
+ * @dev A complete DeFi ecosystem with cutting-edge features + NEW ADDITIONS
  */
 contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
     using SafeMath for uint256;
 
-    // EXISTING STRUCTURES (keeping all previous ones)
+    // ===== EXISTING STRUCTURES (abbreviated for space) =====
     
-    // 1. Dynamic Interest Rate Model
     struct InterestRateModel {
         uint256 baseRate;           
         uint256 multiplier;         
@@ -25,714 +24,705 @@ contract UltraEnhancedProject is ReentrancyGuard, Ownable, Pausable {
         bool isActive;
     }
 
-    // 2. Liquidation Engine with Dutch Auction
-    struct DutchAuction {
-        uint256 id;
-        address borrower;
-        address collateralToken;
-        uint256 collateralAmount;
-        uint256 debtAmount;
-        uint256 startPrice;
-        uint256 endPrice;
-        uint256 startTime;
-        uint256 duration;
-        bool isActive;
-        bool isCompleted;
-        address winner;
-        uint256 finalPrice;
-    }
-
-    // 3. Multi-Signature Governance Proposals
-    struct GovernanceProposal {
-        uint256 id;
-        string title;
-        string description;
-        address proposer;
-        uint256 votesFor;
-        uint256 votesAgainst;
-        uint256 votesAbstain;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 executionTime;
-        bool isExecuted;
-        bool isActive;
-        ProposalType proposalType;
-        bytes callData;
-        mapping(address => bool) hasVoted;
-        mapping(address => VoteType) userVotes;
-    }
-
-    enum ProposalType { PARAMETER_CHANGE, CONTRACT_UPGRADE, TREASURY_SPENDING, EMERGENCY_ACTION }
-    enum VoteType { FOR, AGAINST, ABSTAIN }
-
-    // ===== NEW FUNCTIONALITY 6: ARTIFICIAL INTELLIGENCE TRADING BOTS =====
     struct AITradingBot {
         uint256 id;
         string name;
         address owner;
-        BotStrategy strategy;
         uint256 allocatedFunds;
-        uint256 minTradeAmount;
-        uint256 maxTradeAmount;
-        uint256 riskTolerance; // 1-10 scale
-        uint256 profitTarget;
-        uint256 stopLoss;
         bool isActive;
-        bool isPublic;
         uint256 totalTrades;
         uint256 successfulTrades;
         uint256 totalPnL;
-        uint256 lastTradeTime;
-        mapping(address => bool) allowedTokens;
-        mapping(address => uint256) tokenWeights;
-        uint256 subscriptionFee;
-        mapping(address => uint256) subscribers;
     }
 
-    enum BotStrategy { 
-        ARBITRAGE, 
-        MOMENTUM, 
-        MEAN_REVERSION, 
-        GRID_TRADING, 
-        DCA, 
-        SENTIMENT_ANALYSIS,
-        YIELD_OPTIMIZATION,
-        CROSS_CHAIN_ARBITRAGE
-    }
-
-    // ===== NEW FUNCTIONALITY 7: DECENTRALIZED PREDICTION MARKETS =====
-    struct PredictionMarket {
-        uint256 id;
-        string question;
-        string description;
-        address creator;
-        uint256 endTime;
-        uint256 resolutionTime;
-        uint256 totalStaked;
-        uint256 yesStaked;
-        uint256 noStaked;
-        bool isResolved;
-        bool outcome; // true for YES, false for NO
-        address oracle;
-        uint256 creatorFee;
-        MarketCategory category;
-        mapping(address => UserPrediction) predictions;
-        mapping(address => bool) hasWithdrawn;
-        uint256 totalParticipants;
-    }
-
-    struct UserPrediction {
-        uint256 yesAmount;
-        uint256 noAmount;
-        bool hasParticipated;
-        uint256 potentialPayout;
-    }
-
-    enum MarketCategory { 
-        SPORTS, 
-        POLITICS, 
-        CRYPTO, 
-        WEATHER, 
-        ECONOMICS, 
-        ENTERTAINMENT,
-        TECHNOLOGY,
-        SCIENCE
-    }
-
-    // ===== NEW FUNCTIONALITY 8: DYNAMIC NFT MARKETPLACE WITH FRACTIONAL OWNERSHIP =====
-    struct DynamicNFT {
-        uint256 tokenId;
-        address nftContract;
-        address owner;
-        uint256 totalFractions;
-        uint256 availableFractions;
-        uint256 pricePerFraction;
-        uint256 totalValue;
-        bool isListed;
-        bool allowsFractional;
-        mapping(address => uint256) fractionOwners;
-        mapping(address => uint256) fractionListings;
-        uint256 royaltyPercentage;
-        address royaltyRecipient;
-        uint256 lastTradePrice;
-        uint256 priceHistory;
-    }
-
-    struct NFTAuction {
-        uint256 auctionId;
-        uint256 tokenId;
-        address nftContract;
-        address seller;
-        uint256 startingBid;
-        uint256 currentBid;
-        address currentBidder;
-        uint256 endTime;
-        bool isActive;
-        bool isCompleted;
-        AuctionType auctionType;
-        uint256 reservePrice;
-        uint256 bidIncrement;
-    }
-
-    enum AuctionType { ENGLISH, DUTCH, SEALED_BID, VICKREY }
-
-    // ===== NEW FUNCTIONALITY 9: CARBON CREDIT TRADING PLATFORM =====
-    struct CarbonCredit {
-        uint256 id;
-        string projectName;
-        string location;
-        address issuer;
-        uint256 totalCredits;
-        uint256 availableCredits;
-        uint256 pricePerCredit;
-        uint256 vintage; // Year of issuance
-        CreditStandard standard;
-        bool isVerified;
-        bool isRetired;
-        mapping(address => uint256) holdings;
-        uint256 expiryDate;
-        string methodology;
-        bytes32 verificationHash;
-    }
-
-    enum CreditStandard { VCS, GOLD_STANDARD, CAR, ACR, CDM }
-
-    struct CarbonOffset {
-        uint256 id;
-        address offsetter;
-        uint256 creditId;
-        uint256 amount;
-        uint256 offsetDate;
-        string purpose;
-        bool isPermanent;
-        bytes32 offsetCertificate;
-    }
-
-    // ===== NEW FUNCTIONALITY 10: DECENTRALIZED MUSIC STREAMING & ROYALTIES =====
-    struct MusicTrack {
-        uint256 trackId;
-        string title;
-        string artist;
-        address owner;
-        uint256 streamCount;
-        uint256 pricePerStream;
-        uint256 totalRoyalties;
-        bool isActive;
-        mapping(address => uint256) royaltyShares; // For collaborators
-        mapping(address => uint256) streamHistory;
-        uint256 duration; // in seconds
-        string ipfsHash;
-        Genre genre;
-        uint256 releaseDate;
-    }
-
-    enum Genre { 
-        ROCK, 
-        POP, 
-        JAZZ, 
-        CLASSICAL, 
-        ELECTRONIC, 
-        HIP_HOP,
-        COUNTRY,
-        BLUES,
-        REGGAE,
-        OTHER
-    }
-
-    struct MusicStreaming {
-        address streamer;
-        uint256 trackId;
-        uint256 streamTime;
-        uint256 royaltyPaid;
-        bool isComplete;
-    }
-
-    // ===== NEW FUNCTIONALITY 11: DECENTRALIZED CLOUD STORAGE MARKETPLACE =====
-    struct StorageProvider {
-        address provider;
-        string name;
-        uint256 totalCapacity; // in GB
-        uint256 availableCapacity;
-        uint256 pricePerGBMonth;
-        uint256 uptime; // percentage
-        uint256 reputation;
-        bool isActive;
-        mapping(address => uint256) userStorageUsed;
-        uint256 totalEarnings;
-        string endpoint;
-        bytes32 publicKey;
-    }
-
-    struct StorageContract {
-        uint256 contractId;
-        address client;
-        address provider;
-        uint256 storageAmount; // in GB
-        uint256 duration; // in months
-        uint256 monthlyPrice;
-        uint256 totalPrice;
+    // ===== NEW FUNCTIONALITY 13: DECENTRALIZED INSURANCE MARKETPLACE =====
+    struct InsurancePolicy {
+        uint256 policyId;
+        address policyholder;
+        address insurer;
+        InsuranceType insuranceType;
+        uint256 coverageAmount;
+        uint256 premiumAmount;
+        uint256 deductible;
+        uint256 policyDuration;
         uint256 startTime;
         uint256 endTime;
         bool isActive;
-        bool isPaid;
-        string dataHash;
-        uint256 redundancyLevel;
+        bool hasClaimed;
+        uint256 claimAmount;
+        mapping(address => bool) approvedAssessors;
+        uint256 riskScore; // 1-100
+        string coverageDetails;
     }
 
-    // ===== NEW FUNCTIONALITY 12: QUANTUM-RESISTANT SECURITY LAYER =====
-    struct QuantumSecurity {
-        address user;
-        bytes32 quantumKeyHash;
-        uint256 keyGeneration;
-        uint256 lastRotation;
-        bool isQuantumSecured;
-        mapping(bytes32 => bool) usedNonces;
-        uint256 securityLevel; // 1-5 scale
+    enum InsuranceType { 
+        SMART_CONTRACT_HACK, 
+        DEPEG_PROTECTION, 
+        YIELD_LOSS, 
+        LIQUIDATION_PROTECTION,
+        BRIDGE_FAILURE,
+        ORACLE_FAILURE,
+        GOVERNANCE_ATTACK,
+        RUGPULL_PROTECTION
     }
 
-    struct SecureTransaction {
-        uint256 txId;
+    struct InsuranceClaim {
+        uint256 claimId;
+        uint256 policyId;
+        address claimant;
+        uint256 claimAmount;
+        string description;
+        string evidenceHash;
+        uint256 submissionTime;
+        ClaimStatus status;
+        mapping(address => bool) assessorVotes;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 payoutAmount;
+    }
+
+    enum ClaimStatus { SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, PAID }
+
+    // ===== NEW FUNCTIONALITY 14: CROSS-CHAIN BRIDGE AGGREGATOR =====
+    struct CrossChainBridge {
+        uint256 bridgeId;
+        string bridgeName;
+        address bridgeContract;
+        uint256[] supportedChainIds;
+        mapping(uint256 => mapping(address => bool)) supportedTokens;
+        uint256 fee; // in basis points
+        uint256 minAmount;
+        uint256 maxAmount;
+        bool isActive;
+        uint256 totalVolume;
+        uint256 successfulTransfers;
+        uint256 failedTransfers;
+    }
+
+    struct CrossChainTransfer {
+        uint256 transferId;
         address sender;
         address recipient;
-        uint256 amount;
-        bytes32 quantumSignature;
-        uint256 timestamp;
-        bool isVerified;
-        uint256 securityScore;
-    }
-
-    // EXISTING STRUCTURES (abbreviated for space)
-    struct FlashLoan {
-        uint256 id;
-        address borrower;
         address token;
         uint256 amount;
+        uint256 sourceChain;
+        uint256 destinationChain;
+        uint256 bridgeId;
         uint256 fee;
         uint256 timestamp;
-        bool isRepaid;
+        TransferStatus status;
+        bytes32 txHash;
+        uint256 estimatedTime;
     }
 
-    struct Portfolio {
-        uint256 id;
-        address owner;
-        string name;
-        uint256 totalValue;
-        uint256 riskScore;
+    enum TransferStatus { INITIATED, IN_PROGRESS, COMPLETED, FAILED, REFUNDED }
+
+    // ===== NEW FUNCTIONALITY 15: DECENTRALIZED DERIVATIVES EXCHANGE =====
+    struct DerivativeContract {
+        uint256 contractId;
+        address creator;
+        DerivativeType derivativeType;
+        address underlyingAsset;
+        uint256 strikePrice;
+        uint256 expirationTime;
+        uint256 premiumPrice;
+        uint256 contractSize;
+        bool isCall; // true for call, false for put (for options)
+        bool isSettled;
+        address counterparty;
+        uint256 collateralAmount;
+        uint256 marginRequirement;
+        uint256 currentPrice;
+        uint256 pnl;
+    }
+
+    enum DerivativeType { OPTION, FUTURE, PERPETUAL, SWAP }
+
+    struct DerivativePosition {
+        uint256 positionId;
+        address trader;
+        uint256 contractId;
+        bool isLong;
+        uint256 quantity;
+        uint256 entryPrice;
+        uint256 liquidationPrice;
+        uint256 collateral;
+        uint256 unrealizedPnL;
+        bool isOpen;
+        uint256 openTime;
+        uint256 closeTime;
+    }
+
+    // ===== NEW FUNCTIONALITY 16: AUTOMATED MARKET MAKER (AMM) WITH CONCENTRATED LIQUIDITY =====
+    struct LiquidityPool {
+        uint256 poolId;
+        address tokenA;
+        address tokenB;
+        uint256 reserveA;
+        uint256 reserveB;
+        uint256 totalLiquidity;
+        uint256 feeRate; // in basis points
         bool isActive;
-        bool isPublic;
-        uint256 managementFee;
-        uint256 performanceFee;
-        mapping(address => uint256) tokenAllocations;
-        mapping(address => uint256) targetAllocations;
-        uint256 lastRebalance;
-        uint256 totalInvestors;
-        mapping(address => uint256) investorShares;
+        uint256 totalVolume24h;
+        uint256 totalFees;
+        mapping(address => LiquidityPosition) positions;
+        uint256 currentPrice;
+        uint256 priceImpact;
     }
 
-    // NEW COUNTERS FOR ADDED FUNCTIONALITY
-    uint256 public aiTradingBotCounter;
-    uint256 public predictionMarketCounter;
-    uint256 public dynamicNFTCounter;
-    uint256 public nftAuctionCounter;
-    uint256 public carbonCreditCounter;
-    uint256 public carbonOffsetCounter;
-    uint256 public musicTrackCounter;
-    uint256 public storageContractCounter;
-    uint256 public secureTransactionCounter;
+    struct LiquidityPosition {
+        address provider;
+        uint256 liquidityTokens;
+        uint256 depositedA;
+        uint256 depositedB;
+        uint256 minPriceRange;
+        uint256 maxPriceRange;
+        uint256 feesEarnedA;
+        uint256 feesEarnedB;
+        uint256 depositTime;
+        bool isActive;
+    }
 
-    // EXISTING COUNTERS
-    uint256 public portfolioCounter;
-    uint256 public flashLoanCounter;
-    uint256 public dutchAuctionCounter;
-    uint256 public governanceProposalCounter;
+    struct SwapTransaction {
+        uint256 swapId;
+        address trader;
+        uint256 poolId;
+        address tokenIn;
+        address tokenOut;
+        uint256 amountIn;
+        uint256 amountOut;
+        uint256 fee;
+        uint256 slippage;
+        uint256 timestamp;
+        uint256 priceImpact;
+    }
 
-    // NEW MAPPINGS FOR ADDED FUNCTIONALITY
-    mapping(uint256 => AITradingBot) public aiTradingBots;
-    mapping(address => uint256[]) public userTradingBots;
-    mapping(uint256 => PredictionMarket) public predictionMarkets;
-    mapping(address => uint256[]) public userPredictions;
-    mapping(uint256 => DynamicNFT) public dynamicNFTs;
-    mapping(uint256 => NFTAuction) public nftAuctions;
-    mapping(uint256 => CarbonCredit) public carbonCredits;
-    mapping(uint256 => CarbonOffset) public carbonOffsets;
-    mapping(address => uint256) public carbonFootprint;
-    mapping(uint256 => MusicTrack) public musicTracks;
-    mapping(address => uint256[]) public artistTracks;
-    mapping(address => MusicStreaming[]) public userStreamingHistory;
-    mapping(address => StorageProvider) public storageProviders;
-    mapping(uint256 => StorageContract) public storageContracts;
-    mapping(address => QuantumSecurity) public quantumSecurity;
-    mapping(uint256 => SecureTransaction) public secureTransactions;
+    // ===== NEW FUNCTIONALITY 17: DECENTRALIZED IDENTITY & REPUTATION SYSTEM =====
+    struct DecentralizedIdentity {
+        address user;
+        string profileHash; // IPFS hash
+        uint256 reputationScore;
+        uint256 totalTransactions;
+        uint256 successfulTransactions;
+        bool isVerified;
+        bool isKYCCompleted;
+        mapping(string => bool) credentials;
+        mapping(address => uint256) endorsements;
+        uint256 trustScore; // 0-1000
+        uint256 lastActivity;
+        string[] achievements;
+    }
 
-    // EXISTING MAPPINGS
-    mapping(uint256 => Portfolio) public portfolios;
-    mapping(uint256 => FlashLoan) public flashLoans;
-    mapping(uint256 => DutchAuction) public dutchAuctions;
-    mapping(uint256 => GovernanceProposal) public governanceProposals;
+    struct ReputationUpdate {
+        uint256 updateId;
+        address user;
+        address rater;
+        int256 scoreChange;
+        string reason;
+        uint256 timestamp;
+        bool isValid;
+    }
 
-    // NEW FEATURE FLAGS
-    bool public aiTradingEnabled = true;
-    bool public predictionMarketsEnabled = true;
-    bool public dynamicNFTEnabled = true;
-    bool public carbonTradingEnabled = true;
-    bool public musicStreamingEnabled = true;
-    bool public cloudStorageEnabled = true;
-    bool public quantumSecurityEnabled = true;
+    // ===== NEW FUNCTIONALITY 18: REAL ESTATE TOKENIZATION PLATFORM =====
+    struct RealEstateProperty {
+        uint256 propertyId;
+        string propertyAddress;
+        address owner;
+        uint256 totalValue;
+        uint256 totalTokens;
+        uint256 availableTokens;
+        uint256 pricePerToken;
+        PropertyType propertyType;
+        uint256 expectedYield; // Annual yield in basis points
+        bool isTokenized;
+        bool isListed;
+        string propertyHash; // IPFS hash for documents
+        uint256 lastValuation;
+        mapping(address => uint256) tokenHolders;
+        uint256 totalRentalIncome;
+        uint256 totalDistributed;
+    }
 
-    // EXISTING FEATURE FLAGS
-    bool public portfolioManagementEnabled = true;
-    bool public flashLoansEnabled = true;
-    bool public governanceEnabled = true;
+    enum PropertyType { RESIDENTIAL, COMMERCIAL, INDUSTRIAL, LAND, MIXED_USE }
 
-    // PROTOCOL PARAMETERS
-    uint256 public aiTradingFee = 50; // 0.5%
-    uint256 public predictionMarketFee = 200; // 2%
-    uint256 public nftMarketplaceFee = 250; // 2.5%
-    uint256 public carbonCreditFee = 100; // 1%
-    uint256 public musicStreamingFee = 30; // 0.3%
-    uint256 public storageMarketplaceFee = 150; // 1.5%
-    uint256 public quantumSecurityFee = 20; // 0.2%
+    struct RentalDistribution {
+        uint256 distributionId;
+        uint256 propertyId;
+        uint256 totalAmount;
+        uint256 distributionDate;
+        uint256 totalTokens;
+        mapping(address => uint256) claimed;
+        bool isComplete;
+    }
+
+    // ===== NEW FUNCTIONALITY 19: DECENTRALIZED ORACLE NETWORK =====
+    struct OracleProvider {
+        address provider;
+        string name;
+        uint256 reputationScore;
+        uint256 totalFeeds;
+        uint256 accuracyRate; // in basis points (10000 = 100%)
+        bool isActive;
+        uint256 stakeAmount;
+        uint256 slashingHistory;
+        mapping(string => bool) supportedFeeds;
+        uint256 totalEarnings;
+        uint256 lastUpdate;
+    }
+
+    struct PriceFeed {
+        string feedId;
+        address[] oracles;
+        mapping(address => uint256) prices;
+        mapping(address => uint256) timestamps;
+        uint256 aggregatedPrice;
+        uint256 lastUpdate;
+        uint256 deviation;
+        bool isActive;
+        uint256 minimumOracles;
+        uint256 updateFrequency;
+    }
+
+    // ===== NEW FUNCTIONALITY 20: SOCIAL TRADING PLATFORM =====
+    struct SocialTrader {
+        address trader;
+        string username;
+        uint256 followers;
+        uint256 totalTrades;
+        uint256 winRate; // in basis points
+        uint256 totalPnL;
+        uint256 averageReturn; // in basis points
+        uint256 riskScore; // 1-100
+        bool isPublic;
+        uint256 copyTradeFee; // in basis points
+        uint256 minimumCopyAmount;
+        mapping(address => bool) copiers;
+        uint256 totalCopiers;
+        uint256 assetsUnderManagement;
+    }
+
+    struct CopyTradePosition {
+        uint256 positionId;
+        address copier;
+        address trader;
+        address token;
+        uint256 amount;
+        uint256 entryPrice;
+        uint256 currentPrice;
+        bool isOpen;
+        uint256 openTime;
+        uint256 pnl;
+        uint256 copyRatio; // Percentage of trader's position to copy
+    }
+
+    // COUNTERS FOR NEW FUNCTIONALITY
+    uint256 public insurancePolicyCounter;
+    uint256 public insuranceClaimCounter;
+    uint256 public crossChainBridgeCounter;
+    uint256 public crossChainTransferCounter;
+    uint256 public derivativeContractCounter;
+    uint256 public derivativePositionCounter;
+    uint256 public liquidityPoolCounter;
+    uint256 public swapCounter;
+    uint256 public reputationUpdateCounter;
+    uint256 public realEstatePropertyCounter;
+    uint256 public rentalDistributionCounter;
+    uint256 public socialTraderCounter;
+    uint256 public copyTradePositionCounter;
+
+    // MAPPINGS FOR NEW FUNCTIONALITY
+    mapping(uint256 => InsurancePolicy) public insurancePolicies;
+    mapping(uint256 => InsuranceClaim) public insuranceClaims;
+    mapping(address => uint256[]) public userInsurancePolicies;
+    mapping(uint256 => CrossChainBridge) public crossChainBridges;
+    mapping(uint256 => CrossChainTransfer) public crossChainTransfers;
+    mapping(uint256 => DerivativeContract) public derivativeContracts;
+    mapping(uint256 => DerivativePosition) public derivativePositions;
+    mapping(uint256 => LiquidityPool) public liquidityPools;
+    mapping(uint256 => SwapTransaction) public swapTransactions;
+    mapping(address => DecentralizedIdentity) public decentralizedIdentities;
+    mapping(uint256 => ReputationUpdate) public reputationUpdates;
+    mapping(uint256 => RealEstateProperty) public realEstateProperties;
+    mapping(uint256 => RentalDistribution) public rentalDistributions;
+    mapping(address => OracleProvider) public oracleProviders;
+    mapping(string => PriceFeed) public priceFeeds;
+    mapping(address => SocialTrader) public socialTraders;
+    mapping(uint256 => CopyTradePosition) public copyTradePositions;
+
+    // FEATURE FLAGS FOR NEW FUNCTIONALITY
+    bool public insuranceEnabled = true;
+    bool public crossChainBridgeEnabled = true;
+    bool public derivativesEnabled = true;
+    bool public ammEnabled = true;
+    bool public identityEnabled = true;
+    bool public realEstateEnabled = true;
+    bool public oracleNetworkEnabled = true;
+    bool public socialTradingEnabled = true;
+
+    // PROTOCOL PARAMETERS FOR NEW FUNCTIONALITY
+    uint256 public insurancePlatformFee = 300; // 3%
+    uint256 public bridgePlatformFee = 10; // 0.1%
+    uint256 public derivativesPlatformFee = 20; // 0.2%
+    uint256 public ammSwapFee = 30; // 0.3%
+    uint256 public realEstatePlatformFee = 200; // 2%
+    uint256 public socialTradingFee = 100; // 1%
 
     // CORE TOKENS
     IERC20 public lendingToken;
     IERC20 public governanceToken;
-    uint256 public availableLiquidity;
 
-    // NEW EVENTS FOR ADDED FUNCTIONALITY
-    event AITradingBotCreated(uint256 indexed botId, address indexed owner, string name, BotStrategy strategy);
-    event AITradeExecuted(uint256 indexed botId, address indexed token, bool isBuy, uint256 amount, uint256 price);
-    event PredictionMarketCreated(uint256 indexed marketId, string question, address indexed creator, uint256 endTime);
-    event PredictionPlaced(uint256 indexed marketId, address indexed user, bool prediction, uint256 amount);
-    event PredictionMarketResolved(uint256 indexed marketId, bool outcome, uint256 totalPayout);
-    event DynamicNFTListed(uint256 indexed tokenId, address indexed owner, uint256 totalFractions, uint256 pricePerFraction);
-    event NFTFractionPurchased(uint256 indexed tokenId, address indexed buyer, uint256 fractions, uint256 totalPrice);
-    event NFTAuctionStarted(uint256 indexed auctionId, uint256 indexed tokenId, address indexed seller, uint256 startingBid);
-    event NFTAuctionBid(uint256 indexed auctionId, address indexed bidder, uint256 bidAmount);
-    event CarbonCreditIssued(uint256 indexed creditId, string projectName, address indexed issuer, uint256 totalCredits);
-    event CarbonCreditTraded(uint256 indexed creditId, address indexed seller, address indexed buyer, uint256 amount, uint256 price);
-    event CarbonOffset(uint256 indexed offsetId, address indexed offsetter, uint256 creditId, uint256 amount);
-    event MusicTrackUploaded(uint256 indexed trackId, string title, address indexed artist, uint256 pricePerStream);
-    event MusicStreamed(uint256 indexed trackId, address indexed streamer, uint256 royaltyPaid);
-    event StorageProviderRegistered(address indexed provider, string name, uint256 totalCapacity, uint256 pricePerGBMonth);
-    event StorageContractCreated(uint256 indexed contractId, address indexed client, address indexed provider, uint256 storageAmount);
-    event QuantumSecurityEnabled(address indexed user, uint256 securityLevel);
-    event QuantumKeyRotated(address indexed user, uint256 newGeneration);
-
-    // EXISTING EVENTS
-    event FlashLoanInitiated(uint256 indexed loanId, address indexed borrower, address token, uint256 amount, uint256 fee);
-    event PortfolioCreated(uint256 indexed portfolioId, address indexed owner, string name);
-    event GovernanceProposalCreated(uint256 indexed proposalId, address indexed proposer, string title);
-
-    // MODIFIERS
-    modifier onlyStrategist() {
-        require(msg.sender == owner(), "Not authorized strategist");
-        _;
-    }
-
-    modifier updateActivity() {
-        _;
-    }
-
-    modifier onlyQuantumSecured() {
-        require(quantumSecurity[msg.sender].isQuantumSecured, "Quantum security required");
-        _;
-    }
+    // EVENTS FOR NEW FUNCTIONALITY
+    event InsurancePolicyCreated(uint256 indexed policyId, address indexed policyholder, InsuranceType insuranceType, uint256 coverageAmount);
+    event InsuranceClaimSubmitted(uint256 indexed claimId, uint256 indexed policyId, address indexed claimant, uint256 claimAmount);
+    event InsuranceClaimPaid(uint256 indexed claimId, address indexed claimant, uint256 payoutAmount);
+    event CrossChainTransferInitiated(uint256 indexed transferId, address indexed sender, uint256 sourceChain, uint256 destinationChain, uint256 amount);
+    event CrossChainTransferCompleted(uint256 indexed transferId, bytes32 txHash);
+    event DerivativeContractCreated(uint256 indexed contractId, address indexed creator, DerivativeType derivativeType, uint256 strikePrice);
+    event DerivativePositionOpened(uint256 indexed positionId, address indexed trader, uint256 contractId, bool isLong, uint256 quantity);
+    event LiquidityPoolCreated(uint256 indexed poolId, address tokenA, address tokenB, uint256 initialLiquidityA, uint256 initialLiquidityB);
+    event SwapExecuted(uint256 indexed swapId, address indexed trader, uint256 poolId, uint256 amountIn, uint256 amountOut);
+    event ReputationUpdated(address indexed user, int256 scoreChange, uint256 newScore);
+    event RealEstateTokenized(uint256 indexed propertyId, string propertyAddress, uint256 totalTokens, uint256 pricePerToken);
+    event RentalIncomeDistributed(uint256 indexed distributionId, uint256 propertyId, uint256 totalAmount);
+    event OracleProviderRegistered(address indexed provider, string name, uint256 stakeAmount);
+    event PriceFeedUpdated(string indexed feedId, uint256 price, uint256 timestamp);
+    event SocialTraderRegistered(address indexed trader, string username);
+    event CopyTradeExecuted(uint256 indexed positionId, address indexed copier, address indexed trader, uint256 amount);
 
     constructor() Ownable(msg.sender) {
-        // Initialize quantum security for owner
-        quantumSecurity[msg.sender].user = msg.sender;
-        quantumSecurity[msg.sender].isQuantumSecured = true;
-        quantumSecurity[msg.sender].securityLevel = 5;
-        quantumSecurity[msg.sender].lastRotation = block.timestamp;
+        // Initialize default values
     }
 
-    // ===== NEW FUNCTIONALITY 6: AI TRADING BOTS =====
+    // ===== NEW FUNCTIONALITY 13: DECENTRALIZED INSURANCE =====
     
-    function createAITradingBot(
-        string memory _name,
-        BotStrategy _strategy,
-        uint256 _allocatedFunds,
-        uint256 _minTradeAmount,
-        uint256 _maxTradeAmount,
-        uint256 _riskTolerance,
-        bool _isPublic,
-        uint256 _subscriptionFee
-    ) external nonReentrant updateActivity {
-        require(aiTradingEnabled, "AI trading disabled");
-        require(_riskTolerance >= 1 && _riskTolerance <= 10, "Invalid risk tolerance");
-        require(_minTradeAmount <= _maxTradeAmount, "Invalid trade amounts");
-        require(lendingToken.transferFrom(msg.sender, address(this), _allocatedFunds), "Fund transfer failed");
+    function createInsurancePolicy(
+        InsuranceType _insuranceType,
+        uint256 _coverageAmount,
+        uint256 _premiumAmount,
+        uint256 _deductible,
+        uint256 _policyDuration,
+        uint256 _riskScore,
+        string memory _coverageDetails
+    ) external nonReentrant {
+        require(insuranceEnabled, "Insurance disabled");
+        require(_coverageAmount > 0, "Invalid coverage amount");
+        require(_riskScore <= 100, "Invalid risk score");
+        require(lendingToken.transferFrom(msg.sender, address(this), _premiumAmount), "Premium payment failed");
         
-        aiTradingBotCounter = aiTradingBotCounter.add(1);
+        insurancePolicyCounter = insurancePolicyCounter.add(1);
         
-        AITradingBot storage bot = aiTradingBots[aiTradingBotCounter];
-        bot.id = aiTradingBotCounter;
-        bot.name = _name;
-        bot.owner = msg.sender;
-        bot.strategy = _strategy;
-        bot.allocatedFunds = _allocatedFunds;
-        bot.minTradeAmount = _minTradeAmount;
-        bot.maxTradeAmount = _maxTradeAmount;
-        bot.riskTolerance = _riskTolerance;
-        bot.isActive = true;
-        bot.isPublic = _isPublic;
-        bot.subscriptionFee = _subscriptionFee;
+        InsurancePolicy storage policy = insurancePolicies[insurancePolicyCounter];
+        policy.policyId = insurancePolicyCounter;
+        policy.policyholder = msg.sender;
+        policy.insuranceType = _insuranceType;
+        policy.coverageAmount = _coverageAmount;
+        policy.premiumAmount = _premiumAmount;
+        policy.deductible = _deductible;
+        policy.policyDuration = _policyDuration;
+        policy.startTime = block.timestamp;
+        policy.endTime = block.timestamp.add(_policyDuration);
+        policy.isActive = true;
+        policy.riskScore = _riskScore;
+        policy.coverageDetails = _coverageDetails;
         
-        userTradingBots[msg.sender].push(aiTradingBotCounter);
+        userInsurancePolicies[msg.sender].push(insurancePolicyCounter);
         
-        emit AITradingBotCreated(aiTradingBotCounter, msg.sender, _name, _strategy);
+        emit InsurancePolicyCreated(insurancePolicyCounter, msg.sender, _insuranceType, _coverageAmount);
     }
 
-    function executeAITrade(
-        uint256 _botId,
-        address _token,
-        bool _isBuy,
-        uint256 _amount,
-        uint256 _price
-    ) external nonReentrant onlyStrategist {
-        require(_botId > 0 && _botId <= aiTradingBotCounter, "Invalid bot ID");
-        AITradingBot storage bot = aiTradingBots[_botId];
-        require(bot.isActive, "Bot not active");
-        require(_amount >= bot.minTradeAmount && _amount <= bot.maxTradeAmount, "Amount out of range");
-        
-        // Execute trade logic here
-        bot.totalTrades = bot.totalTrades.add(1);
-        bot.lastTradeTime = block.timestamp;
-        
-        emit AITradeExecuted(_botId, _token, _isBuy, _amount, _price);
-    }
-
-    // ===== NEW FUNCTIONALITY 7: PREDICTION MARKETS =====
-    
-    function createPredictionMarket(
-        string memory _question,
+    function submitInsuranceClaim(
+        uint256 _policyId,
+        uint256 _claimAmount,
         string memory _description,
-        uint256 _endTime,
-        uint256 _resolutionTime,
-        address _oracle,
-        uint256 _creatorFee,
-        MarketCategory _category
-    ) external nonReentrant updateActivity {
-        require(predictionMarketsEnabled, "Prediction markets disabled");
-        require(_endTime > block.timestamp, "Invalid end time");
-        require(_resolutionTime > _endTime, "Invalid resolution time");
-        require(_creatorFee <= 1000, "Creator fee too high"); // Max 10%
+        string memory _evidenceHash
+    ) external nonReentrant {
+        require(_policyId > 0 && _policyId <= insurancePolicyCounter, "Invalid policy ID");
+        InsurancePolicy storage policy = insurancePolicies[_policyId];
+        require(policy.policyholder == msg.sender, "Not policy holder");
+        require(policy.isActive, "Policy not active");
+        require(!policy.hasClaimed, "Already claimed");
+        require(block.timestamp <= policy.endTime, "Policy expired");
+        require(_claimAmount <= policy.coverageAmount, "Claim exceeds coverage");
         
-        predictionMarketCounter = predictionMarketCounter.add(1);
+        insuranceClaimCounter = insuranceClaimCounter.add(1);
         
-        PredictionMarket storage market = predictionMarkets[predictionMarketCounter];
-        market.id = predictionMarketCounter;
-        market.question = _question;
-        market.description = _description;
-        market.creator = msg.sender;
-        market.endTime = _endTime;
-        market.resolutionTime = _resolutionTime;
-        market.oracle = _oracle;
-        market.creatorFee = _creatorFee;
-        market.category = _category;
+        InsuranceClaim storage claim = insuranceClaims[insuranceClaimCounter];
+        claim.claimId = insuranceClaimCounter;
+        claim.policyId = _policyId;
+        claim.claimant = msg.sender;
+        claim.claimAmount = _claimAmount;
+        claim.description = _description;
+        claim.evidenceHash = _evidenceHash;
+        claim.submissionTime = block.timestamp;
+        claim.status = ClaimStatus.SUBMITTED;
         
-        emit PredictionMarketCreated(predictionMarketCounter, _question, msg.sender, _endTime);
+        emit InsuranceClaimSubmitted(insuranceClaimCounter, _policyId, msg.sender, _claimAmount);
     }
 
-    function placePrediction(
-        uint256 _marketId,
-        bool _prediction,
-        uint256 _amount
-    ) external nonReentrant updateActivity {
-        require(_marketId > 0 && _marketId <= predictionMarketCounter, "Invalid market");
-        PredictionMarket storage market = predictionMarkets[_marketId];
-        require(block.timestamp < market.endTime, "Market ended");
-        require(!market.isResolved, "Market resolved");
-        require(lendingToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
-        
-        UserPrediction storage userPred = market.predictions[msg.sender];
-        if (!userPred.hasParticipated) {
-            market.totalParticipants = market.totalParticipants.add(1);
-            userPred.hasParticipated = true;
-        }
-        
-        if (_prediction) {
-            userPred.yesAmount = userPred.yesAmount.add(_amount);
-            market.yesStaked = market.yesStaked.add(_amount);
-        } else {
-            userPred.noAmount = userPred.noAmount.add(_amount);
-            market.noStaked = market.noStaked.add(_amount);
-        }
-        
-        market.totalStaked = market.totalStaked.add(_amount);
-        
-        emit PredictionPlaced(_marketId, msg.sender, _prediction, _amount);
-    }
-
-    // ===== NEW FUNCTIONALITY 8: DYNAMIC NFT MARKETPLACE =====
+    // ===== NEW FUNCTIONALITY 14: CROSS-CHAIN BRIDGE =====
     
-    function listDynamicNFT(
-        address _nftContract,
-        uint256 _tokenId,
-        uint256 _totalFractions,
-        uint256 _pricePerFraction,
-        bool _allowsFractional,
-        uint256 _royaltyPercentage
-    ) external nonReentrant updateActivity {
-        require(dynamicNFTEnabled, "Dynamic NFT disabled");
-        require(_totalFractions > 0, "Invalid fractions");
-        require(_royaltyPercentage <= 1000, "Royalty too high"); // Max 10%
+    function registerCrossChainBridge(
+        string memory _bridgeName,
+        address _bridgeContract,
+        uint256[] memory _supportedChainIds,
+        uint256 _fee,
+        uint256 _minAmount,
+        uint256 _maxAmount
+    ) external onlyOwner {
+        require(crossChainBridgeEnabled, "Cross-chain bridge disabled");
+        require(_supportedChainIds.length > 0, "No supported chains");
         
-        dynamicNFTCounter = dynamicNFTCounter.add(1);
+        crossChainBridgeCounter = crossChainBridgeCounter.add(1);
         
-        DynamicNFT storage nft = dynamicNFTs[dynamicNFTCounter];
-        nft.tokenId = _tokenId;
-        nft.nftContract = _nftContract;
-        nft.owner = msg.sender;
-        nft.totalFractions = _totalFractions;
-        nft.availableFractions = _totalFractions;
-        nft.pricePerFraction = _pricePerFraction;
-        nft.totalValue = _totalFractions.mul(_pricePerFraction);
-        nft.isListed = true;
-        nft.allowsFractional = _allowsFractional;
-        nft.royaltyPercentage = _royaltyPercentage;
-        nft.royaltyRecipient = msg.sender;
-        
-        emit DynamicNFTListed(_tokenId, msg.sender, _totalFractions, _pricePerFraction);
+        CrossChainBridge storage bridge = crossChainBridges[crossChainBridgeCounter];
+        bridge.bridgeId = crossChainBridgeCounter;
+        bridge.bridgeName = _bridgeName;
+        bridge.bridgeContract = _bridgeContract;
+        bridge.supportedChainIds = _supportedChainIds;
+        bridge.fee = _fee;
+        bridge.minAmount = _minAmount;
+        bridge.maxAmount = _maxAmount;
+        bridge.isActive = true;
     }
 
-    function purchaseNFTFractions(
-        uint256 _nftId,
-        uint256 _fractions
-    ) external nonReentrant updateActivity {
-        require(_nftId > 0 && _nftId <= dynamicNFTCounter, "Invalid NFT");
-        DynamicNFT storage nft = dynamicNFTs[_nftId];
-        require(nft.isListed, "NFT not listed");
-        require(nft.allowsFractional, "Fractional ownership not allowed");
-        require(_fractions <= nft.availableFractions, "Not enough fractions available");
-        
-        uint256 totalPrice = _fractions.mul(nft.pricePerFraction);
-        require(lendingToken.transferFrom(msg.sender, address(this), totalPrice), "Payment failed");
-        
-        // Transfer royalty to original creator
-        uint256 royalty = totalPrice.mul(nft.royaltyPercentage).div(10000);
-        if (royalty > 0) {
-            require(lendingToken.transfer(nft.royaltyRecipient, royalty), "Royalty transfer failed");
-        }
-        
-        // Transfer remaining amount to current owner
-        uint256 sellerAmount = totalPrice.sub(royalty);
-        require(lendingToken.transfer(nft.owner, sellerAmount), "Seller payment failed");
-        
-        nft.fractionOwners[msg.sender] = nft.fractionOwners[msg.sender].add(_fractions);
-        nft.availableFractions = nft.availableFractions.sub(_fractions);
-        nft.lastTradePrice = nft.pricePerFraction;
-        
-        emit NFTFractionPurchased(_nftId, msg.sender, _fractions, totalPrice);
-    }
-
-    // ===== NEW FUNCTIONALITY 9: CARBON CREDIT TRADING =====
-    
-    function issueCarbonCredit(
-        string memory _projectName,
-        string memory _location,
-        uint256 _totalCredits,
-        uint256 _pricePerCredit,
-        uint256 _vintage,
-        CreditStandard _standard,
-        uint256 _expiryDate,
-        string memory _methodology
-    ) external nonReentrant updateActivity {
-        require(carbonTradingEnabled, "Carbon trading disabled");
-        require(_totalCredits > 0, "Invalid credit amount");
-        require(_vintage <= block.timestamp, "Invalid vintage");
-        
-        carbonCreditCounter = carbonCreditCounter.add(1);
-        
-        CarbonCredit storage credit = carbonCredits[carbonCreditCounter];
-        credit.id = carbonCreditCounter;
-        credit.projectName = _projectName;
-        credit.location = _location;
-        credit.issuer = msg.sender;
-        credit.totalCredits = _totalCredits;
-        credit.availableCredits = _totalCredits;
-        credit.pricePerCredit = _pricePerCredit;
-        credit.vintage = _vintage;
-        credit.standard = _standard;
-        credit.isVerified = false; // Needs verification
-        credit.expiryDate = _expiryDate;
-        credit.methodology = _methodology;
-        
-        emit CarbonCreditIssued(carbonCreditCounter, _projectName, msg.sender, _totalCredits);
-    }
-
-    function purchaseCarbonCredits(
-        uint256 _creditId,
-        uint256 _amount
-    ) external nonReentrant updateActivity {
-        require(_creditId > 0 && _creditId <= carbonCreditCounter, "Invalid credit ID");
-        CarbonCredit storage credit = carbonCredits[_creditId];
-        require(credit.isVerified, "Credit not verified");
-        require(_amount <= credit.availableCredits, "Not enough credits available");
-        require(block.timestamp < credit.expiryDate, "Credits expired");
-        
-        uint256 totalPrice = _amount.mul(credit.pricePerCredit);
-        require(lendingToken.transferFrom(msg.sender, address(this), totalPrice), "Payment failed");
-        
-        // Transfer payment to issuer (minus platform fee)
-        uint256 platformFee = totalPrice.mul(carbonCreditFee).div(10000);
-        uint256 issuerAmount = totalPrice.sub(platformFee);
-        require(lendingToken.transfer(credit.issuer, issuerAmount), "Issuer payment failed");
-        
-        credit.holdings[msg.sender] = credit.holdings[msg.sender].add(_amount);
-        credit.availableCredits = credit.availableCredits.sub(_amount);
-        
-        emit CarbonCreditTraded(_creditId, credit.issuer, msg.sender, _amount, credit.pricePerCredit);
-    }
-
-    function offsetCarbonCredits(
-        uint256 _creditId,
+    function initiateCrossChainTransfer(
+        uint256 _bridgeId,
+        address _recipient,
+        address _token,
         uint256 _amount,
-        string memory _purpose
-    ) external nonReentrant updateActivity {
-        require(_creditId > 0 && _creditId <= carbonCreditCounter, "Invalid credit ID");
-        CarbonCredit storage credit = carbonCredits[_creditId];
-        require(credit.holdings[msg.sender] >= _amount, "Insufficient credits");
+        uint256 _destinationChain
+    ) external nonReentrant {
+        require(_bridgeId > 0 && _bridgeId <= crossChainBridgeCounter, "Invalid bridge ID");
+        CrossChainBridge storage bridge = crossChainBridges[_bridgeId];
+        require(bridge.isActive, "Bridge not active");
+        require(_amount >= bridge.minAmount && _amount <= bridge.maxAmount, "Amount out of range");
         
-        carbonOffsetCounter = carbonOffsetCounter.add(1);
+        uint256 fee = _amount.mul(bridge.fee).div(10000);
+        uint256 transferAmount = _amount.sub(fee);
         
-        CarbonOffset storage offset = carbonOffsets[carbonOffsetCounter];
-        offset.id = carbonOffsetCounter;
-        offset.offsetter = msg.sender;
-        offset.creditId = _creditId;
-        offset.amount = _amount;
-        offset.offsetDate = block.timestamp;
-        offset.purpose = _purpose;
-        offset.isPermanent = true;
+        require(IERC20(_token).transferFrom(msg.sender, address(this), _amount), "Transfer failed");
         
-        credit.holdings[msg.sender] = credit.holdings[msg.sender].sub(_amount);
-        carbonFootprint[msg.sender] = carbonFootprint[msg.sender].sub(_amount);
+        crossChainTransferCounter = crossChainTransferCounter.add(1);
         
-        emit CarbonOffset(carbonOffsetCounter, msg.sender, _creditId, _amount);
+        CrossChainTransfer storage transfer = crossChainTransfers[crossChainTransferCounter];
+        transfer.transferId = crossChainTransferCounter;
+        transfer.sender = msg.sender;
+        transfer.recipient = _recipient;
+        transfer.token = _token;
+        transfer.amount = transferAmount;
+        transfer.sourceChain = block.chainid;
+        transfer.destinationChain = _destinationChain;
+        transfer.bridgeId = _bridgeId;
+        transfer.fee = fee;
+        transfer.timestamp = block.timestamp;
+        transfer.status = TransferStatus.INITIATED;
+        
+        bridge.totalVolume = bridge.totalVolume.add(transferAmount);
+        
+        emit CrossChainTransferInitiated(crossChainTransferCounter, msg.sender, block.chainid, _destinationChain, transferAmount);
     }
 
-    // ===== NEW FUNCTIONALITY 10: MUSIC STREAMING & ROYALTIES =====
+    // ===== NEW FUNCTIONALITY 15: DERIVATIVES EXCHANGE =====
     
-    function uploadMusicTrack(
-        string memory _title,
-        string memory _artist,
-        uint256 _pricePerStream,
-        uint256 _duration,
-        string memory _ipfsHash,
-        Genre _genre
-    ) external nonReentrant updateActivity {
-        require(musicStreamingEnabled, "Music streaming disabled");
-        require(bytes(_title).length > 0, "Invalid title");
-        require(_duration > 0, "Invalid duration");
+    function createDerivativeContract(
+        DerivativeType _derivativeType,
+        address _underlyingAsset,
+        uint256 _strikePrice,
+        uint256 _expirationTime,
+        uint256 _premiumPrice,
+        uint256 _contractSize,
+        bool _isCall,
+        uint256 _marginRequirement
+    ) external nonReentrant {
+        require(derivativesEnabled, "Derivatives disabled");
+        require(_expirationTime > block.timestamp, "Invalid expiration");
+        require(_contractSize > 0, "Invalid contract size");
         
-        musicTrackCounter = musicTrackCounter.add(1);
+        derivativeContractCounter = derivativeContractCounter.add(1);
         
-        MusicTrack storage track = musicTracks[musicTrackCounter];
-        track.trackId = musicTrackCounter;
-        track.title = _title;
-        track.artist = _artist;
-        track.owner = msg.sender;
-        track.pricePerStream = _pricePerStream;
-        track.duration = _duration;
-        track.ipfsHash = _ipfsHash;
-        track.genre = _genre;
+        DerivativeContract storage derivative = derivativeContracts[derivativeContractCounter];
+        derivative.contractId = derivativeContractCounter;
+        derivative.creator = msg.sender;
+        derivative.derivativeType = _derivativeType;
+        derivative.underlyingAsset = _underlyingAsset;
+        derivative.strikePrice = _strikePrice;
+        derivative.expirationTime = _expirationTime;
+        derivative.premiumPrice = _premiumPrice;
+        derivative.contractSize = _contractSize;
+        derivative.isCall = _isCall;
+        derivative.marginRequirement = _marginRequirement;
+        
+        emit DerivativeContractCreated(derivativeContractCounter, msg.sender, _derivativeType, _strikePrice);
+    }
+
+    // ===== NEW FUNCTIONALITY 16: AMM WITH CONCENTRATED LIQUIDITY =====
+    
+    function createLiquidityPool(
+        address _tokenA,
+        address _tokenB,
+        uint256 _amountA,
+        uint256 _amountB,
+        uint256 _feeRate,
+        uint256 _minPriceRange,
+        uint256 _maxPriceRange
+    ) external nonReentrant {
+        require(ammEnabled, "AMM disabled");
+        require(_tokenA != _tokenB, "Identical tokens");
+        require(_amountA > 0 && _amountB > 0, "Invalid amounts");
+        require(_feeRate <= 10000, "Invalid fee rate");
+        
+        require(IERC20(_tokenA).transferFrom(msg.sender, address(this), _amountA), "Token A transfer failed");
+        require(IERC20(_tokenB).transferFrom(msg.sender, address(this), _amountB), "Token B transfer failed");
+        
+        liquidityPoolCounter = liquidityPoolCounter.add(1);
+        
+        LiquidityPool storage pool = liquidityPools[liquidityPoolCounter];
+        pool.poolId = liquidityPoolCounter;
+        pool.tokenA = _tokenA;
+        pool.tokenB = _tokenB;
+        pool.reserveA = _amountA;
+        pool.reserveB = _amountB;
+        pool.totalLiquidity = sqrt(_amountA.mul(_amountB));
+        pool.feeRate = _feeRate;
+        pool.isActive = true;
+        pool.currentPrice = _amountB.mul(1e18).div(_amountA);
+        
+        LiquidityPosition storage position = pool.positions[msg.sender];
+        position.provider = msg.sender;
+        position.liquidityTokens = pool.totalLiquidity;
+        position.depositedA = _amountA;
+        position.depositedB = _amountB;
+        position.minPriceRange = _minPriceRange;
+        position.maxPriceRange = _maxPriceRange;
+        position.depositTime = block.timestamp;
+        position.isActive = true;
+        
+        emit LiquidityPoolCreated(liquidityPoolCounter, _tokenA, _tokenB, _amountA, _amountB);
+    }
+
+    function executeSwap(
+        uint256 _poolId,
+        address _tokenIn,
+        uint256 _amountIn,
+        uint256 _minAmountOut,
+        uint256 _maxSlippage
+    ) external nonReentrant {
+        require(_poolId > 0 && _poolId <= liquidityPoolCounter, "Invalid pool ID");
+        LiquidityPool storage pool = liquidityPools[_poolId];
+        require(pool.isActive, "Pool not active");
+        require(_tokenIn == pool.tokenA || _tokenIn == pool.tokenB, "Token not in pool");
+        require(IERC20(_tokenIn).transferFrom(msg.sender, address(this), _amountIn), "Transfer failed");
+        
+        uint256 fee = _amountIn.mul(pool.feeRate).div(10000);
+        uint256 amountInAfterFee = _amountIn.sub(fee);
+        uint256 amountOut;
+        
+        if (_tokenIn == pool.tokenA) {
+            amountOut = getAmountOut(amountInAfterFee, pool.reserveA, pool.reserveB);
+            require(amountOut >= _minAmountOut, "Insufficient output amount");
+            
+            pool.reserveA = pool.reserveA.add(amountInAfterFee);
+            pool.reserveB = pool.reserveB.sub(amountOut);
+            
+            require(IERC20(pool.tokenB).transfer(msg.sender, amountOut), "Output transfer failed");
+        } else {
+            amountOut = getAmountOut(amountInAfterFee, pool.reserveB, pool.reserveA);
+            require(amountOut >= _minAmountOut, "Insufficient output amount");
+            
+            pool.reserveB = pool.reserveB.add(amountInAfterFee);
+            pool.reserveA = pool.reserveA.sub(amountOut);
+            
+            require(IERC20(pool.tokenA).transfer(msg.sender, amountOut), "Output transfer failed");
+        }
+        
+        swapCounter = swapCounter.add(1);
+        
+        SwapTransaction storage swap = swapTransactions[swapCounter];
+        swap.swapId = swapCounter;
+        swap.trader = msg.sender;
+        swap.poolId = _poolId;
+        swap.tokenIn = _tokenIn;
+        swap.tokenOut = (_tokenIn == pool.tokenA) ? pool.tokenB : pool.tokenA;
+        swap.amountIn = _amountIn;
+        swap.amountOut = amountOut;
+        swap.fee = fee;
+        swap.timestamp = block.timestamp;
+        
+        pool.totalVolume24h = pool.totalVolume24h.add(_amountIn);
+        pool.totalFees = pool.totalFees.add(fee);
+        
+        emit SwapExecuted(swapCounter, msg.sender, _poolId, _amountIn, amountOut);
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    
+    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) 
+        internal 
+        pure 
+        returns (uint256 amountOut) 
+    {
+        require(amountIn > 0, "Insufficient input amount");
+        require(reserveIn > 0 && reserveOut > 0, "Insufficient liquidity");
+        
+        uint256 numerator = amountIn.mul(reserveOut);
+        uint256 denominator = reserveIn.add(amountIn);
+        amountOut = numerator.div(denominator);
+    }
+    
+    function sqrt(uint256 y) internal pure returns (uint256 z) {
+        if (y > 3) {
+            z = y;
+            uint256 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
+        }
+    }
+
+    // ===== NEW FUNCTIONALITY 17: IDENTITY & REPUTATION =====
+    
+    function registerDecentralizedIdentity(
+        string memory _profileHash,
+        string[] memory _credentials
+    ) external {
+        require(identityEnabled, "Identity system disabled");
+        require(decentralizedIdentities[msg.sender].user == address(0), "Identity already exists");
+        
+        DecentralizedIdentity storage identity = decentralizedIdentities[msg.sender];
+        identity.user = msg.sender;
+        identity.profileHash = _profileHash;
+        identity.reputationScore = 500; // Starting score
+        identity.trustScore = 100; // Starting trust score
+        identity.lastActivity = block.timestamp;
+        
+        for (uint i = 0; i < _credentials.length; i++) {
+            identity.credentials[_credentials[i]] = true;
+        }
+    }
+
+    function updateReputation(
+        address _user,
+        int256 _scoreChange,
+        string memory _reason
+    ) external {
+        require(decentralizedIdentities[_user].user != address(0), "User identity not found");
+        require(decentralizedIdentities[msg.sender].trustScore >= 500, "Insufficient trust to rate");
+        
+        reputationUpdateCounter = reputationUpdateCounter.add(1);
+        
+        ReputationUpdate storage update = reputationUpdates[reputationUpdateCounter];
+        update.updateId = reputationUpdateCounter;
+        update.user = _user;
+        update.rater = msg.sender;
+        update.scoreChange = _scoreChange;
+        update.reason = _reason;
+        update.timestamp = block.timestamp;
+        update.isValid = true;
+        
+        DecentralizedIdentity storage identity = decentralizedIdentities[_user];
+        if (_scoreChange > 0) {
+            identity.reputationScore =
+   
